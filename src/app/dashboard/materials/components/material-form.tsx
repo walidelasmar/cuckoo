@@ -156,7 +156,7 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
                 name="sku"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>SKU</FormLabel>
+                    <FormLabel>SKU Ref.</FormLabel>
                     <FormControl>
                         <Input placeholder="GC-APF-25KG" {...field} />
                     </FormControl>
