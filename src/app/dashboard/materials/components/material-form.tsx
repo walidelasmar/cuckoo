@@ -97,12 +97,12 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                 control={form.control}
-                name="name"
+                name="shortName"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Short Name (Unique)</FormLabel>
                     <FormControl>
-                        <Input placeholder="All-Purpose Flour" {...field} />
+                        <Input placeholder="APF" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -110,12 +110,12 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
                 />
                 <FormField
                 control={form.control}
-                name="shortName"
+                name="name"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Short Name (Unique)</FormLabel>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
-                        <Input placeholder="APF" {...field} />
+                        <Input placeholder="All-Purpose Flour" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
