@@ -8,10 +8,6 @@ export default function RawMaterialsPage() {
       style: 'currency',
       currency: 'USD',
     }).format(item.price),
-    pricePerUnit: new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(item.price / item.quantity),
   }));
 
   return (

@@ -57,7 +57,7 @@ const ActionsCell = ({ row }: { row: any }) => {
 };
 
 
-export const columns: ColumnDef<RawMaterial & { pricePerUnit: string }>[] = [
+export const columns: ColumnDef<RawMaterial>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => {
@@ -95,13 +95,6 @@ export const columns: ColumnDef<RawMaterial & { pricePerUnit: string }>[] = [
     header: () => <div className="text-right">Price</div>,
     cell: ({ row }) => {
       return <div className="text-right font-medium">{row.original.price}</div>
-    },
-  },
-  {
-    accessorKey: "pricePerUnit",
-    header: () => <div className="text-right">Price/Unit</div>,
-    cell: ({ row }) => {
-      return <div className="text-right font-medium">{row.getValue("pricePerUnit")}</div>
     },
   },
   {

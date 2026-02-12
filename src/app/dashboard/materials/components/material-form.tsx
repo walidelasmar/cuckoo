@@ -89,15 +89,6 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
         }
     };
 
-    const pricePerUnit = () => {
-        const price = form.watch('price');
-        const quantity = form.watch('quantity');
-        if (price > 0 && quantity > 0) {
-            return (price/quantity).toFixed(4);
-        }
-        return '0.00';
-    }
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-4">
@@ -212,27 +203,19 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
                 )}
                 />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Price</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="30.00" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                <FormItem>
-                    <FormLabel>Price / Unit</FormLabel>
+            <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Price</FormLabel>
                     <FormControl>
-                        <Input readOnly value={pricePerUnit()} />
+                        <Input type="number" placeholder="30.00" {...field} />
                     </FormControl>
-                </FormItem>
-            </div>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
           </div>
         </ScrollArea>
         <div className="flex justify-end gap-2 pr-4">
