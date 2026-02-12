@@ -19,7 +19,7 @@ export type RawMaterial = {
   sku: string;
   quantity: number;
   unit: Unit;
-  price: number;
+  cost: number;
 };
 
 export type Ingredient = {

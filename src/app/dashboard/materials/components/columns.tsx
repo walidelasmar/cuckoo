@@ -20,6 +20,12 @@ const ActionsCell = ({ row }: { row: any }) => {
     const material = row.original;
     const [isSheetOpen, setIsSheetOpen] = React.useState(false);
 
+    // We need to transform the cost back to a number for the form
+    const editableMaterial = {
+        ...material,
+        cost: parseFloat(material.cost.replace(/[^0-9.-]+/g,""))
+    }
+
     return (
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <DropdownMenu>
@@ -50,7 +56,7 @@ const ActionsCell = ({ row }: { row: any }) => {
                         Update the details for your inventory item.
                     </SheetDescription>
                 </SheetHeader>
-                <MaterialForm initialData={material} onClose={() => setIsSheetOpen(false)} />
+                <MaterialForm initialData={editableMaterial} onClose={() => setIsSheetOpen(false)} />
             </SheetContent>
         </Sheet>
     );
@@ -91,10 +97,10 @@ export const columns: ColumnDef<RawMaterial>[] = [
     cell: ({row}) => <div>{`${row.original.quantity} ${row.original.unit}`}</div>
   },
   {
-    accessorKey: "price",
-    header: () => <div className="text-right">Price</div>,
+    accessorKey: "cost",
+    header: () => <div className="text-right">Cost</div>,
     cell: ({ row }) => {
-      return <div className="text-right font-medium">{row.original.price}</div>
+      return <div className="text-right font-medium">{row.original.cost}</div>
     },
   },
   {

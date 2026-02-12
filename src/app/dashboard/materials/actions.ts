@@ -13,7 +13,7 @@ const formSchema = z.object({
   sku: z.string().optional(),
   quantity: z.coerce.number().min(0, { message: 'Quantity must be positive.' }),
   unit: z.enum(['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'piece']),
-  price: z.coerce.number().min(0, { message: 'Price must be positive.' }),
+  cost: z.coerce.number().min(0, { message: 'Cost must be positive.' }),
 });
 
 export async function createMaterial(data: z.infer<typeof formSchema>) {

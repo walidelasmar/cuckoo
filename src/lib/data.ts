@@ -10,7 +10,7 @@ export const rawMaterials: RawMaterial[] = [
     sku: 'GC-APF-25KG',
     quantity: 25,
     unit: 'kg',
-    price: 30.0,
+    cost: 30.0,
   },
   {
     id: 'mat-2',
@@ -21,7 +21,7 @@ export const rawMaterials: RawMaterial[] = [
     sku: 'FF-WM-1G',
     quantity: 1,
     unit: 'l',
-    price: 3.5,
+    cost: 3.5,
   },
   {
     id: 'mat-3',
@@ -32,7 +32,7 @@ export const rawMaterials: RawMaterial[] = [
     sku: 'HH-LBE-12CT',
     quantity: 12,
     unit: 'piece',
-    price: 4.0,
+    cost: 4.0,
   },
   {
     id: 'mat-4',
@@ -43,7 +43,7 @@ export const rawMaterials: RawMaterial[] = [
     sku: 'SS-GS-10LB',
     quantity: 10,
     unit: 'lb',
-    price: 8.0,
+    cost: 8.0,
   },
    {
     id: 'mat-5',
@@ -54,7 +54,7 @@ export const rawMaterials: RawMaterial[] = [
     sku: 'VV-YO-50LB',
     quantity: 50,
     unit: 'lb',
-    price: 25.00
+    cost: 25.00
   },
   {
     id: 'mat-6',
@@ -65,7 +65,7 @@ export const rawMaterials: RawMaterial[] = [
     sku: 'BB-GB-10LB',
     quantity: 10,
     unit: 'lb',
-    price: 45.00
+    cost: 45.00
   },
 ];
 

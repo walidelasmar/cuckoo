@@ -31,7 +31,7 @@ const formSchema = z.object({
   sku: z.string().optional(),
   quantity: z.coerce.number().min(0, { message: 'Quantity must be positive.' }),
   unit: z.enum(['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'piece']),
-  price: z.coerce.number().min(0, { message: 'Price must be positive.' }),
+  cost: z.coerce.number().min(0, { message: 'Cost must be positive.' }),
 });
 
 type MaterialFormValues = z.infer<typeof formSchema>;
@@ -56,7 +56,7 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
             sku: '',
             quantity: 0,
             unit: 'kg',
-            price: 0
+            cost: 0
         },
     });
 
@@ -205,10 +205,10 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
             </div>
             <FormField
                 control={form.control}
-                name="price"
+                name="cost"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Price</FormLabel>
+                    <FormLabel>Cost</FormLabel>
                     <FormControl>
                         <Input type="number" placeholder="30.00" {...field} />
                     </FormControl>

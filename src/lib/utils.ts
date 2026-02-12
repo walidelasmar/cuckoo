@@ -30,7 +30,7 @@ export function calculateRecipeCost(recipe: Recipe) {
 
     // Direct piece-to-piece calculation
     if (ingredient.unit === 'piece' && rawMaterial.unit === 'piece') {
-        totalCost += (ingredient.quantity / rawMaterial.quantity) * rawMaterial.price;
+        totalCost += (ingredient.quantity / rawMaterial.quantity) * rawMaterial.cost;
         continue;
     }
     
@@ -43,7 +43,7 @@ export function calculateRecipeCost(recipe: Recipe) {
         const materialInBase = rawMaterial.quantity * materialConversion.value;
 
         if (materialInBase > 0) {
-            totalCost += (ingredientInBase / materialInBase) * rawMaterial.price;
+            totalCost += (ingredientInBase / materialInBase) * rawMaterial.cost;
         }
     } else {
         // In a real app, you would handle this incompatibility error more gracefully

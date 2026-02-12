@@ -4,10 +4,10 @@ import MaterialsClient from './components/client';
 export default function RawMaterialsPage() {
   const formattedMaterials = rawMaterials.map((item) => ({
     ...item,
-    price: new Intl.NumberFormat('en-US', {
+    cost: new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(item.price),
+    }).format(item.cost),
   }));
 
   return (
