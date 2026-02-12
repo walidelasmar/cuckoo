@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Profit Palate',
+  title: 'Cuckoo',
   description: 'Calculate profit margins for your menu items.',
 };
 

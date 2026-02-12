@@ -61,7 +61,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p>
-              Welcome to Profit Palate! Here are the next steps to calculate your menu&apos;s profit margins:
+              Welcome to Cuckoo! Here are the next steps to calculate your menu&apos;s profit margins:
             </p>
             <ul className="list-disc space-y-2 pl-5">
               <li>
