@@ -210,7 +210,7 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
                     <FormItem>
                     <FormLabel>Cost</FormLabel>
                     <FormControl>
-                        <Input type="number" placeholder="30.00" {...field} />
+                        <Input type="number" placeholder="30.00" step="0.01" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>

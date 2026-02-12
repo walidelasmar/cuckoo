@@ -20,10 +20,10 @@ const ActionsCell = ({ row }: { row: any }) => {
     const material = row.original;
     const [isSheetOpen, setIsSheetOpen] = React.useState(false);
 
-    // We need to transform the cost back to a number for the form
+    // The cost is already a number, no transformation needed.
     const editableMaterial = {
         ...material,
-        cost: parseFloat(material.cost.replace(/[^0-9.-]+/g,""))
+        cost: parseFloat(material.cost)
     }
 
     return (
@@ -100,7 +100,12 @@ export const columns: ColumnDef<RawMaterial>[] = [
     accessorKey: "cost",
     header: () => <div className="text-right">Cost</div>,
     cell: ({ row }) => {
-      return <div className="text-right font-medium">{row.original.cost}</div>
+      const cost = parseFloat(row.getValue("cost"))
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(cost)
+      return <div className="text-right font-medium">{formatted}</div>
     },
   },
   {
