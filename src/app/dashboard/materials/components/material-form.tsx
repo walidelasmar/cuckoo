@@ -39,9 +39,10 @@ type MaterialFormValues = z.infer<typeof formSchema>;
 interface MaterialFormProps {
     initialData?: RawMaterial;
     onClose: () => void;
+    providers?: string[];
 }
 
-export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
+export function MaterialForm({ initialData, onClose, providers = [] }: MaterialFormProps) {
     const { toast } = useToast();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -145,7 +146,12 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
                     <FormItem>
                     <FormLabel>Provider</FormLabel>
                     <FormControl>
-                        <Input placeholder="Grain Co." {...field} />
+                        <>
+                         <Input placeholder="Grain Co." {...field} list="provider-list" value={field.value ?? ''} />
+                         <datalist id="provider-list">
+                            {providers.map(p => <option key={p} value={p} />)}
+                         </datalist>
+                        </>
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -158,7 +164,7 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
                     <FormItem>
                     <FormLabel>SKU Ref.</FormLabel>
                     <FormControl>
-                        <Input placeholder="GC-APF-25KG" {...field} />
+                        <Input placeholder="GC-APF-25KG" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>

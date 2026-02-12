@@ -9,9 +9,10 @@ import { useState } from 'react';
 
 interface MaterialsClientProps {
   data: any[];
+  providers: string[];
 }
 
-export default function MaterialsClient({ data }: MaterialsClientProps) {
+export default function MaterialsClient({ data, providers }: MaterialsClientProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   return (
@@ -31,7 +32,7 @@ export default function MaterialsClient({ data }: MaterialsClientProps) {
                         Fill in the details for your new inventory item.
                     </SheetDescription>
                 </SheetHeader>
-                <MaterialForm onClose={() => setIsSheetOpen(false)} />
+                <MaterialForm onClose={() => setIsSheetOpen(false)} providers={providers} />
             </SheetContent>
         </Sheet>
       </div>

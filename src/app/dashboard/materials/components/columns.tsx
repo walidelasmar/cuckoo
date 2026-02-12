@@ -16,9 +16,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { MaterialForm } from "./material-form"
 import { RawMaterial } from "@/lib/types"
 
-const ActionsCell = ({ row }: { row: any }) => {
+const ActionsCell = ({ row, table }: { row: any; table: any }) => {
     const material = row.original;
     const [isSheetOpen, setIsSheetOpen] = React.useState(false);
+    const providers = table.options.meta?.providers;
 
     // The cost is already a number, no transformation needed.
     const editableMaterial = {
@@ -56,7 +57,7 @@ const ActionsCell = ({ row }: { row: any }) => {
                         Update the details for your inventory item.
                     </SheetDescription>
                 </SheetHeader>
-                <MaterialForm initialData={editableMaterial} onClose={() => setIsSheetOpen(false)} />
+                <MaterialForm initialData={editableMaterial} onClose={() => setIsSheetOpen(false)} providers={providers} />
             </SheetContent>
         </Sheet>
     );
