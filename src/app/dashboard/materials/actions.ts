@@ -6,7 +6,7 @@ import { rawMaterials } from '@/lib/data';
 import type { RawMaterial } from '@/lib/types';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  name: z.string().min(2, { message: 'SKU Name must be at least 2 characters.' }),
   shortName: z.string().min(1, { message: 'Short name is required.' }),
   category: z.string().min(2, { message: 'Category is required.' }),
   provider: z.string().optional(),

@@ -24,7 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createMaterial, updateMaterial } from '../actions';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  name: z.string().min(2, { message: 'SKU Name must be at least 2 characters.' }),
   shortName: z.string().min(1, { message: 'Short name is required.' }),
   category: z.string().min(2, { message: 'Category is required.' }),
   provider: z.string().optional(),
@@ -113,7 +113,7 @@ export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
                 name="name"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>SKU Name</FormLabel>
                     <FormControl>
                         <Input placeholder="All-Purpose Flour" {...field} />
                     </FormControl>
