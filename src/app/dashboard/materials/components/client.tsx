@@ -5,16 +5,19 @@ import { DataTable } from './data-table';
 import { columns } from './columns';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { MaterialForm } from './material-form';
+import { useState } from 'react';
 
 interface MaterialsClientProps {
   data: any[];
 }
 
 export default function MaterialsClient({ data }: MaterialsClientProps) {
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   return (
     <>
       <div className="flex justify-end">
-        <Sheet>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
                 <Button size="sm" className="gap-1">
                     <PlusCircle className="h-4 w-4" />
@@ -28,7 +31,7 @@ export default function MaterialsClient({ data }: MaterialsClientProps) {
                         Fill in the details for your new inventory item.
                     </SheetDescription>
                 </SheetHeader>
-                <MaterialForm />
+                <MaterialForm onClose={() => setIsSheetOpen(false)} />
             </SheetContent>
         </Sheet>
       </div>

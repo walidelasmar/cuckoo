@@ -3,6 +3,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +21,7 @@ import { UNITS } from '@/lib/constants';
 import type { RawMaterial } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
+import { createMaterial, updateMaterial } from '../actions';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -35,10 +38,13 @@ type MaterialFormValues = z.infer<typeof formSchema>;
 
 interface MaterialFormProps {
     initialData?: RawMaterial;
+    onClose: () => void;
 }
 
-export function MaterialForm({ initialData }: MaterialFormProps) {
+export function MaterialForm({ initialData, onClose }: MaterialFormProps) {
     const { toast } = useToast();
+    const router = useRouter();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<MaterialFormValues>({
         resolver: zodResolver(formSchema),
@@ -54,12 +60,33 @@ export function MaterialForm({ initialData }: MaterialFormProps) {
         },
     });
 
-    const onSubmit = (data: MaterialFormValues) => {
-        toast({
-            title: initialData ? "Material Updated" : "Material Created",
-            description: `The material "${data.name}" has been saved.`,
-        });
-        console.log(data);
+    const onSubmit = async (data: MaterialFormValues) => {
+        setIsSubmitting(true);
+        try {
+            if (initialData) {
+                await updateMaterial(initialData.id, data);
+                toast({
+                    title: "Material Updated",
+                    description: `The material "${data.name}" has been saved.`,
+                });
+            } else {
+                await createMaterial(data);
+                toast({
+                    title: "Material Created",
+                    description: `The material "${data.name}" has been saved.`,
+                });
+            }
+            router.refresh();
+            onClose();
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Uh oh! Something went wrong.',
+                description: 'There was a problem with your request.',
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const pricePerUnit = () => {
@@ -209,7 +236,9 @@ export function MaterialForm({ initialData }: MaterialFormProps) {
           </div>
         </ScrollArea>
         <div className="flex justify-end gap-2 pr-4">
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </Button>
         </div>
       </form>
     </Form>

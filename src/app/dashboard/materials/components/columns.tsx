@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,9 +12,49 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { MaterialForm } from "./material-form"
 import { RawMaterial } from "@/lib/types"
+
+const ActionsCell = ({ row }: { row: any }) => {
+    const material = row.original;
+    const [isSheetOpen, setIsSheetOpen] = React.useState(false);
+
+    return (
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem
+                        onClick={() => navigator.clipboard.writeText(material.id)}
+                    >
+                        Copy material ID
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => setIsSheetOpen(true)}>
+                        Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <SheetContent className="sm:max-w-2xl">
+                <SheetHeader>
+                    <SheetTitle>Edit Raw Material</SheetTitle>
+                    <SheetDescription>
+                        Update the details for your inventory item.
+                    </SheetDescription>
+                </SheetHeader>
+                <MaterialForm initialData={material} onClose={() => setIsSheetOpen(false)} />
+            </SheetContent>
+        </Sheet>
+    );
+};
 
 
 export const columns: ColumnDef<RawMaterial & { pricePerUnit: string }>[] = [
@@ -65,43 +106,6 @@ export const columns: ColumnDef<RawMaterial & { pricePerUnit: string }>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const material = row.original
- 
-      return (
-         <Sheet>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() => navigator.clipboard.writeText(material.id)}
-                >
-                  Copy material ID
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <SheetTrigger asChild>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                </SheetTrigger>
-                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <SheetContent className="sm:max-w-2xl">
-                <SheetHeader>
-                    <SheetTitle>Edit Raw Material</SheetTitle>
-                    <SheetDescription>
-                        Update the details for your inventory item.
-                    </SheetDescription>
-                </SheetHeader>
-                <MaterialForm initialData={material} />
-            </SheetContent>
-        </Sheet>
-      )
-    },
+    cell: ActionsCell,
   },
 ]
