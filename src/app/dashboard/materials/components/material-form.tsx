@@ -1,0 +1,217 @@
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UNITS } from '@/lib/constants';
+import type { RawMaterial } from '@/lib/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+
+const formSchema = z.object({
+  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  shortName: z.string().min(1, { message: 'Short name is required.' }),
+  category: z.string().min(2, { message: 'Category is required.' }),
+  provider: z.string().optional(),
+  sku: z.string().optional(),
+  quantity: z.coerce.number().min(0, { message: 'Quantity must be positive.' }),
+  unit: z.enum(['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'piece']),
+  price: z.coerce.number().min(0, { message: 'Price must be positive.' }),
+});
+
+type MaterialFormValues = z.infer<typeof formSchema>;
+
+interface MaterialFormProps {
+    initialData?: RawMaterial;
+}
+
+export function MaterialForm({ initialData }: MaterialFormProps) {
+    const { toast } = useToast();
+
+    const form = useForm<MaterialFormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: initialData || {
+            name: '',
+            shortName: '',
+            category: '',
+            provider: '',
+            sku: '',
+            quantity: 0,
+            unit: 'kg',
+            price: 0
+        },
+    });
+
+    const onSubmit = (data: MaterialFormValues) => {
+        toast({
+            title: initialData ? "Material Updated" : "Material Created",
+            description: `The material "${data.name}" has been saved.`,
+        });
+        console.log(data);
+    };
+
+    const pricePerUnit = () => {
+        const price = form.watch('price');
+        const quantity = form.watch('quantity');
+        if (price > 0 && quantity > 0) {
+            return (price/quantity).toFixed(4);
+        }
+        return '0.00';
+    }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-4">
+        <ScrollArea className="h-[calc(100vh-12rem)]">
+          <div className="space-y-4 p-1 pr-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                        <Input placeholder="All-Purpose Flour" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="shortName"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Short Name (Unique)</FormLabel>
+                    <FormControl>
+                        <Input placeholder="APF" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Flour" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="provider"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Provider</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Grain Co." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="sku"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>SKU</FormLabel>
+                    <FormControl>
+                        <Input placeholder="GC-APF-25KG" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <FormField
+                    control={form.control}
+                    name="quantity"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Quantity</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="25" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Unit</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a unit" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {UNITS.map(unit => (
+                                <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Price</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="30.00" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                <FormItem>
+                    <FormLabel>Price / Unit</FormLabel>
+                    <FormControl>
+                        <Input readOnly value={pricePerUnit()} />
+                    </FormControl>
+                </FormItem>
+            </div>
+          </div>
+        </ScrollArea>
+        <div className="flex justify-end gap-2 pr-4">
+            <Button type="submit">Save</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}

@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-export default function LoginPage() {
+export default function SignupPage() {
   const loginBg = PlaceHolderImages.find(
     (img) => img.id === 'login-background'
   );
@@ -26,12 +26,16 @@ export default function LoginPage() {
             <div className="flex justify-center">
               <Logo />
             </div>
-            <h1 className="text-3xl font-bold font-headline">Login</h1>
+            <h1 className="text-3xl font-bold font-headline">Sign Up</h1>
             <p className="text-balance text-muted-foreground">
-              Enter your email below to login to your account
+              Create an account to start managing your menu costs.
             </p>
           </div>
           <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="restaurant-name">Restaurant Name</Label>
+              <Input id="restaurant-name" placeholder="The Good Food Place" required />
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -42,30 +46,22 @@ export default function LoginPage() {
               />
             </div>
             <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="ml-auto inline-block text-sm underline"
-                >
-                  Forgot your password?
-                </Link>
-              </div>
+              <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" required />
             </div>
             <Button type="submit" className="w-full" asChild>
-              <Link href="/dashboard">Login</Link>
+              <Link href="/dashboard">Create an account</Link>
             </Button>
           </div>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="underline">
-              Sign up
+            Already have an account?{' '}
+            <Link href="/" className="underline">
+              Login
             </Link>
           </div>
         </div>
       </div>
-      <div className="hidden bg-muted lg:block">
+       <div className="hidden bg-muted lg:block">
         {loginBg && (
           <Image
             src={loginBg.imageUrl}

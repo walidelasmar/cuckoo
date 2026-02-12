@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "login-background",
+      "description": "A background image for the login page showing a professional kitchen setting.",
+      "imageUrl": "https://images.unsplash.com/photo-1751111055532-ad7810ab1d1a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxraXRjaGVuJTIwZm9vZHxlbnwwfHx8fDE3NzA4OTUyMTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "kitchen food"
+    }
+  ]
 }
