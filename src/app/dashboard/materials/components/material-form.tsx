@@ -47,9 +47,14 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const form = useForm<MaterialFormValues>({
+    const form = useForm<z.input<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: initialData || {
+        defaultValues: initialData ? {
+            ...initialData,
+            provider: initialData.provider ?? '',
+            sku: initialData.sku ?? '',
+            cost: initialData.cost.toFixed(2),
+        } : {
             name: '',
             shortName: '',
             category: '',
@@ -57,12 +62,13 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
             sku: '',
             quantity: 0,
             unit: 'kg',
-            cost: 0
+            cost: '0.00'
         },
     });
 
     const quantity = form.watch('quantity');
-    const cost = form.watch('cost');
+    const costValue = form.watch('cost');
+    const cost = typeof costValue === 'string' ? parseFloat(costValue) : (costValue ?? 0);
     const costPerUnit = (quantity > 0 && cost > 0) ? (cost / quantity) : 0;
     const formattedCostPerUnit = new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -233,15 +239,18 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                                         <span className="text-muted-foreground sm:text-sm">$</span>
                                     </div>
                                     <Input
-                                        type="number"
+                                        type="text"
+                                        inputMode="decimal"
                                         placeholder="0.00"
-                                        step="0.01"
                                         {...field}
                                         onBlur={(e) => {
                                             const value = parseFloat(e.target.value);
                                             if (!isNaN(value)) {
-                                                field.onChange(Number(value.toFixed(2)));
+                                                field.onChange(value.toFixed(2));
+                                            } else {
+                                                field.onChange('0.00');
                                             }
+                                            field.onBlur();
                                         }}
                                         className="pl-7"
                                     />
