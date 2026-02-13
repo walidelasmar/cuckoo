@@ -52,6 +52,8 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
         defaultValues: initialData ? {
             ...initialData,
             provider: initialData.provider ?? '',
+            category: initialData.category ?? '',
+            name: initialData.name ?? '',
             sku: initialData.sku ?? '',
             cost: initialData.cost.toFixed(2),
         } : {
@@ -61,7 +63,7 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
             provider: '',
             sku: '',
             quantity: 0,
-            unit: 'kg',
+            unit: 'piece',
             cost: '0.00'
         },
     });
@@ -85,13 +87,13 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                 await updateMaterial(initialData.id, data);
                 toast({
                     title: "Material Updated",
-                    description: `The material "${data.name}" has been saved.`,
+                    description: `The material "${data.shortName}" has been saved.`,
                 });
             } else {
                 await createMaterial(data);
                 toast({
                     title: "Material Created",
-                    description: `The material "${data.name}" has been saved.`,
+                    description: `The material "${data.shortName}" has been saved.`,
                 });
             }
             router.refresh();
@@ -153,7 +155,7 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                         <FormItem>
                         <FormLabel>Category</FormLabel>
                         <FormControl>
-                            <Input placeholder="Flour" {...field} />
+                            <Input placeholder="Flour" {...field} value={field.value ?? ''}/>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -169,7 +171,7 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                     <FormItem>
                     <FormLabel>SKU Name</FormLabel>
                     <FormControl>
-                        <Input placeholder="All-Purpose Flour" {...field} />
+                        <Input placeholder="All-Purpose Flour" {...field} value={field.value ?? ''}/>
                     </FormControl>
                     <FormMessage />
                     </FormItem>
