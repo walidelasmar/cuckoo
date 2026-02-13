@@ -61,6 +61,16 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
         },
     });
 
+    const quantity = form.watch('quantity');
+    const cost = form.watch('cost');
+    const costPerUnit = (quantity > 0 && cost > 0) ? (cost / quantity) : 0;
+    const formattedCostPerUnit = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4,
+    }).format(costPerUnit);
+
     const onSubmit = async (data: MaterialFormValues) => {
         setIsSubmitting(true);
         try {
@@ -95,46 +105,18 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-4">
         <ScrollArea className="h-[calc(100vh-12rem)]">
           <div className="space-y-4 p-1 pr-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                control={form.control}
-                name="shortName"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Short Name (Unique)</FormLabel>
-                    <FormControl>
-                        <Input placeholder="APF" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>SKU Name</FormLabel>
-                    <FormControl>
-                        <Input placeholder="All-Purpose Flour" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-            </div>
-
+            
             <FormField
               control={form.control}
-              name="category"
+              name="shortName"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormItem>
+                  <FormLabel>Short Name (Unique)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Flour" {...field} />
+                      <Input placeholder="APF" {...field} />
                   </FormControl>
                   <FormMessage />
-                </FormItem>
+                  </FormItem>
               )}
             />
 
@@ -152,6 +134,35 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                             {providers.map(p => <option key={p} value={p} />)}
                          </datalist>
                         </>
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Flour" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>SKU Name</FormLabel>
+                    <FormControl>
+                        <Input placeholder="All-Purpose Flour" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -209,19 +220,32 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                 )}
                 />
             </div>
-            <FormField
-                control={form.control}
-                name="cost"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Cost</FormLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="cost"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Cost</FormLabel>
+                        <FormControl>
+                            <Input type="number" placeholder="30.00" step="0.01" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                 <FormItem>
+                    <FormLabel>Cost per Unit</FormLabel>
                     <FormControl>
-                        <Input type="number" placeholder="30.00" step="0.01" {...field} />
+                        <Input
+                            type="text"
+                            value={formattedCostPerUnit}
+                            disabled
+                            className="disabled:opacity-100 disabled:cursor-default"
+                        />
                     </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
+                </FormItem>
+            </div>
           </div>
         </ScrollArea>
         <div className="flex justify-end gap-2 pr-4">

@@ -110,6 +110,24 @@ export const columns: ColumnDef<RawMaterial>[] = [
     },
   },
   {
+    id: 'costPerUnit',
+    header: () => <div className="text-right">Cost per Unit</div>,
+    cell: ({ row }) => {
+      const { cost, quantity } = row.original;
+      if (!quantity || quantity <= 0) {
+        return <div className="text-right font-medium">-</div>;
+      }
+      const costPerUnit = cost / quantity;
+      const formatted = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4,
+      }).format(costPerUnit);
+      return <div className="text-right font-medium">{formatted}</div>;
+    },
+  },
+  {
     id: "actions",
     cell: ActionsCell,
   },
