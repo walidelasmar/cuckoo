@@ -17,9 +17,6 @@ export default function RawMaterialsPage() {
           <h1 className="font-headline text-3xl font-bold tracking-tight">
             Raw Materials
           </h1>
-          <p className="text-muted-foreground">
-            Manage your inventory of raw materials.
-          </p>
         </div>
       </div>
       <MaterialsClient data={formattedMaterials} providers={providers} />
