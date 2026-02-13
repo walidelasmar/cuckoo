@@ -261,7 +261,7 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                     )}
                 />
                  <FormItem>
-                    <FormLabel>Cost per Unit</FormLabel>
+                    <FormLabel>Unit Cost</FormLabel>
                     <FormControl>
                         <Input
                             type="text"

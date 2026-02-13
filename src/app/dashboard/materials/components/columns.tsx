@@ -112,7 +112,7 @@ export const columns: ColumnDef<RawMaterial>[] = [
   },
   {
     id: 'costPerUnit',
-    header: () => <div className="text-right">Cost per Unit</div>,
+    header: () => <div className="text-right">Unit Cost</div>,
     cell: ({ row }) => {
       const { cost, quantity } = row.original;
       if (!quantity || quantity <= 0) {
