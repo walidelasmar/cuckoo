@@ -31,7 +31,7 @@ export const rawMaterials: RawMaterial[] = [
     provider: 'Happy Hens',
     sku: 'HH-LBE-12CT',
     quantity: 12,
-    unit: 'piece',
+    unit: 'pc',
     cost: 4.0,
   },
   {
@@ -93,7 +93,7 @@ export const recipes: Recipe[] = [
         id: 'ing-1-3',
         rawMaterial: rawMaterials.find((m) => m.shortName === 'EGGS')!,
         quantity: 2,
-        unit: 'piece',
+        unit: 'pc',
       },
       {
         id: 'ing-1-4',
@@ -120,7 +120,7 @@ export const recipes: Recipe[] = [
         id: 'ing-2-2',
         rawMaterial: rawMaterials.find((m) => m.shortName === 'ONION')!,
         quantity: 1,
-        unit: 'piece',
+        unit: 'pc',
       },
     ]
   }

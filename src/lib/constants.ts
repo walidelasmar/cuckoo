@@ -10,7 +10,7 @@ export const UNITS: { value: Unit; label: string }[] = [
   { value: 'tsp', label: 'Teaspoon (tsp)' },
   { value: 'tbsp', label: 'Tablespoon (tbsp)' },
   { value: 'cup', label: 'Cup' },
-  { value: 'piece', label: 'Piece(s)' },
+  { value: 'pc', label: 'Piece(s) (pc)' },
 ];
 
 export const UNIT_CATEGORIES: { [key in Unit]: 'weight' | 'volume' | 'count' } = {
@@ -23,5 +23,5 @@ export const UNIT_CATEGORIES: { [key in Unit]: 'weight' | 'volume' | 'count' } =
     tsp: 'volume',
     tbsp: 'volume',
     cup: 'volume',
-    piece: 'count',
+    pc: 'count',
 }

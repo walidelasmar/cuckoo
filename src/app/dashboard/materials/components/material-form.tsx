@@ -30,7 +30,7 @@ const formSchema = z.object({
   provider: z.string().optional(),
   sku: z.string().optional(),
   quantity: z.coerce.number().min(0, { message: 'Quantity must be positive.' }),
-  unit: z.enum(['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'piece']),
+  unit: z.enum(['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'pc']),
   cost: z.coerce.number().min(0, { message: 'Cost must be positive.' }),
 });
 
@@ -63,7 +63,7 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
             provider: '',
             sku: '',
             quantity: 0,
-            unit: 'piece',
+            unit: 'pc',
             cost: '0.00'
         },
     });

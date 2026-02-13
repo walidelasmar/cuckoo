@@ -29,7 +29,7 @@ export function calculateRecipeCost(recipe: Recipe) {
     if (!rawMaterial) continue;
 
     // Direct piece-to-piece calculation
-    if (ingredient.unit === 'piece' && rawMaterial.unit === 'piece') {
+    if (ingredient.unit === 'pc' && rawMaterial.unit === 'pc') {
         totalCost += (ingredient.quantity / rawMaterial.quantity) * rawMaterial.cost;
         continue;
     }
