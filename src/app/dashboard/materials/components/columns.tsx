@@ -65,31 +65,35 @@ const ActionsCell = ({ row, table }: { row: any; table: any }) => {
 
 export const columns: ColumnDef<RawMaterial>[] = [
   {
-    accessorKey: "name",
+    accessorKey: "shortName",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          SKU Name
+          Short Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-    cell: ({ row }) => <div className="pl-4">{row.original.name}</div>
+    cell: ({ row }) => <div className="pl-4">{row.original.shortName}</div>
   },
   {
-    accessorKey: "shortName",
-    header: "Short Name",
+    accessorKey: "provider",
+    header: "Provider",
   },
   {
     accessorKey: "category",
     header: "Category",
   },
   {
-    accessorKey: "provider",
-    header: "Provider",
+    accessorKey: "name",
+    header: "SKU Name",
+  },
+  {
+    accessorKey: "sku",
+    header: "SKU Ref.",
   },
    {
     accessorKey: "quantity",
@@ -100,7 +104,8 @@ export const columns: ColumnDef<RawMaterial>[] = [
     accessorKey: "cost",
     header: () => <div className="text-right">Cost</div>,
     cell: ({ row }) => {
-      const cost = parseFloat(row.getValue("cost"))
+      const costValue = row.getValue("cost");
+      const cost = typeof costValue === 'string' ? parseFloat(costValue) : (costValue as number ?? 0);
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
