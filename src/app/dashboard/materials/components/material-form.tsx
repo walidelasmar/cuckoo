@@ -24,9 +24,9 @@ import { useToast } from '@/hooks/use-toast';
 import { createMaterial, updateMaterial } from '../actions';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'SKU Name must be at least 2 characters.' }),
+  name: z.string().optional(),
   shortName: z.string().min(1, { message: 'Short name is required.' }),
-  category: z.string().min(2, { message: 'Category is required.' }),
+  category: z.string().optional(),
   provider: z.string().optional(),
   sku: z.string().optional(),
   quantity: z.coerce.number().min(0, { message: 'Quantity must be positive.' }),
