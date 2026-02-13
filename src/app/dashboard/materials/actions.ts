@@ -22,7 +22,7 @@ export async function createMaterial(data: z.infer<typeof formSchema>) {
     id: `mat-${Date.now()}`, // NOTE: Not a robust way to generate IDs
     ...data,
   };
-  rawMaterials.push(newMaterial);
+  rawMaterials.unshift(newMaterial);
   revalidatePath('/dashboard/materials');
   return { success: true, material: newMaterial };
 }
@@ -43,4 +43,14 @@ export async function updateMaterial(
   rawMaterials[materialIndex] = updatedMaterial;
   revalidatePath('/dashboard/materials');
   return { success: true, material: updatedMaterial };
+}
+
+export async function deleteMaterial(id: string) {
+    const materialIndex = rawMaterials.findIndex((m) => m.id === id);
+    if (materialIndex > -1) {
+        rawMaterials.splice(materialIndex, 1);
+        revalidatePath('/dashboard/materials');
+        return { success: true };
+    }
+    return { success: false, error: 'Material not found' };
 }
