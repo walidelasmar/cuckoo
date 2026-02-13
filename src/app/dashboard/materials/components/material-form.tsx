@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +21,7 @@ import type { RawMaterial } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { createMaterial, updateMaterial } from '../actions';
+import { SheetDescription } from '@/components/ui/sheet';
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -44,7 +44,6 @@ interface MaterialFormProps {
 
 export function MaterialForm({ initialData, onClose, providers = [] }: MaterialFormProps) {
     const { toast } = useToast();
-    const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<z.input<typeof formSchema>>({
@@ -96,7 +95,6 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                     description: `The material "${data.shortName}" has been saved.`,
                 });
             }
-            router.refresh();
             onClose();
         } catch (error) {
             toast({
@@ -110,6 +108,10 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
     };
 
   return (
+    <>
+    <SheetDescription>
+      Add the details of your new raw material. Only the short name, quantity, unit, and cost are required.
+    </SheetDescription>
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-4">
         <ScrollArea className="h-[calc(100vh-12rem)]">
@@ -284,5 +286,6 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
         </div>
       </form>
     </Form>
+    </>
   );
 }

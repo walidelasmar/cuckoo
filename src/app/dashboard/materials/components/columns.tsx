@@ -2,16 +2,8 @@
 
 import * as React from "react"
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown } from "lucide-react"
+import { ArrowUpDown, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { MaterialForm } from "./material-form"
 import { RawMaterial } from "@/lib/types"
@@ -98,32 +90,16 @@ const ActionsCell = ({ row, table }: { row: any; table: any }) => {
                 </SheetContent>
             </Sheet>
 
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem
-                        onClick={() => navigator.clipboard.writeText(material.id)}
-                    >
-                        Copy material ID
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => setIsSheetOpen(true)}>
-                        Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                        onSelect={() => setIsAlertOpen(true)}
-                    >
-                        Delete
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center justify-end space-x-1">
+                <Button variant="ghost" size="icon" onClick={() => setIsSheetOpen(true)}>
+                    <Edit className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
+                </Button>
+                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setIsAlertOpen(true)}>
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
+                </Button>
+            </div>
         </>
     );
 };
@@ -216,5 +192,6 @@ export const columns: ColumnDef<RawMaterial>[] = [
   {
     id: "actions",
     cell: ActionsCell,
+    header: () => <div className="text-right">Actions</div>,
   },
 ]
