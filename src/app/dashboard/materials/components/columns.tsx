@@ -27,7 +27,7 @@ const ActionsCell = ({ row, table }: { row: any; table: any }) => {
     }
 
     return (
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
@@ -49,66 +49,68 @@ const ActionsCell = ({ row, table }: { row: any; table: any }) => {
                     <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-            <SheetContent className="sm:max-w-2xl">
-                <SheetHeader>
-                    <SheetTitle>Edit Raw Material</SheetTitle>
-                    <SheetDescription>
-                        Update the details for your inventory item.
-                    </SheetDescription>
-                </SheetHeader>
-                <MaterialForm initialData={editableMaterial} onClose={() => setIsSheetOpen(false)} providers={providers} />
-            </SheetContent>
-        </Sheet>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                <SheetContent className="sm:max-w-2xl">
+                    <SheetHeader>
+                        <SheetTitle>Edit Raw Material</SheetTitle>
+                        <SheetDescription>
+                            Update the details for your inventory item.
+                        </SheetDescription>
+                    </SheetHeader>
+                    <MaterialForm initialData={editableMaterial} onClose={() => setIsSheetOpen(false)} providers={providers} />
+                </SheetContent>
+            </Sheet>
+        </>
     );
 };
 
 
 export const columns: ColumnDef<RawMaterial>[] = [
-  {
-    accessorKey: "shortName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Short Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="pl-4">{row.original.shortName}</div>
-  },
-  {
-    accessorKey: "provider",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Provider
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="pl-4">{row.getValue("provider")}</div>,
-  },
-  {
-    accessorKey: "category",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Category
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => <div className="pl-4">{row.getValue("category")}</div>,
-  },
+    {
+        accessorKey: "shortName",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Short Name
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          )
+        },
+        cell: ({ row }) => <div className="pl-4">{row.original.shortName}</div>
+      },
+      {
+        accessorKey: "provider",
+        header: ({ column }) => {
+            return (
+              <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              >
+                Provider
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            )
+          },
+        cell: ({ row }) => <div className="pl-4">{row.getValue("provider")}</div>,
+      },
+      {
+        accessorKey: "category",
+        header: ({ column }) => {
+            return (
+              <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              >
+                Category
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+            )
+          },
+        cell: ({ row }) => <div className="pl-4">{row.getValue("category")}</div>,
+      },
    {
     accessorKey: "quantity",
     header: "Quantity",
