@@ -226,14 +226,25 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                     name="cost"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Cost</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="30.00" step="0.01" {...field} />
-                        </FormControl>
-                        <FormMessage />
+                            <FormLabel>Cost</FormLabel>
+                            <FormControl>
+                                <div className="relative">
+                                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <span className="text-muted-foreground sm:text-sm">$</span>
+                                    </div>
+                                    <Input
+                                        type="number"
+                                        placeholder="0.00"
+                                        step="0.01"
+                                        {...field}
+                                        className="pl-7"
+                                    />
+                                </div>
+                            </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
-                    />
+                />
                  <FormItem>
                     <FormLabel>Cost per Unit</FormLabel>
                     <FormControl>
