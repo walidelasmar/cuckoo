@@ -67,9 +67,10 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
     });
 
     const quantity = form.watch('quantity');
+    const unit = form.watch('unit');
     const costValue = form.watch('cost');
     const cost = typeof costValue === 'string' ? parseFloat(costValue) : (costValue ?? 0);
-    const costPerUnit = (quantity > 0 && cost > 0) ? (cost / quantity) : 0;
+    const costPerUnit = (quantity > 0) ? (cost / quantity) : 0;
     const formattedCostPerUnit = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
@@ -265,7 +266,7 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                     <FormControl>
                         <Input
                             type="text"
-                            value={formattedCostPerUnit}
+                            value={quantity > 0 ? `${formattedCostPerUnit}/${unit}` : formattedCostPerUnit}
                             disabled
                             className="disabled:opacity-100 disabled:cursor-default"
                         />

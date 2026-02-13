@@ -114,7 +114,7 @@ export const columns: ColumnDef<RawMaterial>[] = [
     id: 'costPerUnit',
     header: () => <div className="text-right">Unit Cost</div>,
     cell: ({ row }) => {
-      const { cost, quantity } = row.original;
+      const { cost, quantity, unit } = row.original;
       if (!quantity || quantity <= 0) {
         return <div className="text-right font-medium">-</div>;
       }
@@ -125,7 +125,7 @@ export const columns: ColumnDef<RawMaterial>[] = [
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(costPerUnit);
-      return <div className="text-right font-medium">{formatted}</div>;
+      return <div className="text-right font-medium">{`${formatted}/${unit}`}</div>;
     },
   },
   {
