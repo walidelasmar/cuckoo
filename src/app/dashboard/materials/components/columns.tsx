@@ -109,14 +109,6 @@ export const columns: ColumnDef<RawMaterial>[] = [
     },
     cell: ({ row }) => <div className="pl-4">{row.getValue("category")}</div>,
   },
-  {
-    accessorKey: "name",
-    header: "SKU Name",
-  },
-  {
-    accessorKey: "sku",
-    header: "SKU Ref.",
-  },
    {
     accessorKey: "quantity",
     header: "Quantity",
