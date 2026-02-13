@@ -68,7 +68,7 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 2,
-        maximumFractionDigits: 4,
+        maximumFractionDigits: 2,
     }).format(costPerUnit);
 
     const onSubmit = async (data: MaterialFormValues) => {
@@ -237,6 +237,12 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
                                         placeholder="0.00"
                                         step="0.01"
                                         {...field}
+                                        onBlur={(e) => {
+                                            const value = parseFloat(e.target.value);
+                                            if (!isNaN(value)) {
+                                                field.onChange(Number(value.toFixed(2)));
+                                            }
+                                        }}
                                         className="pl-7"
                                     />
                                 </div>

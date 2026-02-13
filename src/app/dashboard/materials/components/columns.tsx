@@ -21,10 +21,9 @@ const ActionsCell = ({ row, table }: { row: any; table: any }) => {
     const [isSheetOpen, setIsSheetOpen] = React.useState(false);
     const providers = table.options.meta?.providers;
 
-    // The cost is already a number, no transformation needed.
     const editableMaterial = {
         ...material,
-        cost: parseFloat(material.cost)
+        cost: material.cost
     }
 
     return (
@@ -105,6 +104,8 @@ export const columns: ColumnDef<RawMaterial>[] = [
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       }).format(cost)
       return <div className="text-right font-medium">{formatted}</div>
     },
@@ -122,7 +123,7 @@ export const columns: ColumnDef<RawMaterial>[] = [
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 2,
-        maximumFractionDigits: 4,
+        maximumFractionDigits: 2,
       }).format(costPerUnit);
       return <div className="text-right font-medium">{formatted}</div>;
     },
