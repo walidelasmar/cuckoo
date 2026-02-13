@@ -65,16 +65,6 @@ const ActionsCell = ({ row, table }: { row: any; table: any }) => {
         }
     }
     
-    const handleEditSelect = (e: Event) => {
-        e.preventDefault();
-        setIsSheetOpen(true);
-    }
-    
-    const handleDeleteSelect = (e: Event) => {
-        e.preventDefault();
-        setIsAlertOpen(true);
-    }
-
     return (
         <>
             <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
@@ -123,12 +113,12 @@ const ActionsCell = ({ row, table }: { row: any; table: any }) => {
                         Copy material ID
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={handleEditSelect}>
+                    <DropdownMenuItem onSelect={() => setIsSheetOpen(true)}>
                         Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                        onSelect={handleDeleteSelect}
+                        onSelect={() => setIsAlertOpen(true)}
                     >
                         Delete
                     </DropdownMenuItem>
