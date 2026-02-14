@@ -6,14 +6,22 @@ import { columns } from './columns';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { MaterialForm } from './material-form';
 import { useState } from 'react';
+import type { RawMaterial } from '@/lib/types';
 
 interface MaterialsClientProps {
-  data: any[];
+  data: RawMaterial[];
   providers: string[];
+  addMaterial: (data: Omit<RawMaterial, 'id'>) => void;
+  updateMaterial: (id: string, data: Partial<Omit<RawMaterial, 'id'>>) => void;
+  deleteMaterial: (id: string) => void;
 }
 
-export default function MaterialsClient({ data, providers }: MaterialsClientProps) {
+export default function MaterialsClient({ data, providers, addMaterial, updateMaterial, deleteMaterial }: MaterialsClientProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  
+  const handleAdd = (formData: Omit<RawMaterial, 'id'>) => {
+    addMaterial(formData);
+  };
 
   return (
     <>
@@ -29,11 +37,23 @@ export default function MaterialsClient({ data, providers }: MaterialsClientProp
                 <SheetHeader>
                     <SheetTitle>Add New Raw Material</SheetTitle>
                 </SheetHeader>
-                <MaterialForm onClose={() => setIsSheetOpen(false)} providers={providers} />
+                <MaterialForm 
+                    onSave={handleAdd} 
+                    onClose={() => setIsSheetOpen(false)} 
+                    providers={providers} 
+                />
             </SheetContent>
         </Sheet>
       </div>
-      <DataTable columns={columns} data={data} />
+      <DataTable 
+        columns={columns} 
+        data={data} 
+        meta={{
+            providers,
+            updateMaterial,
+            deleteMaterial,
+        }}
+      />
     </>
   );
 }

@@ -20,8 +20,6 @@ import { UNITS } from '@/lib/constants';
 import type { RawMaterial } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { createMaterial, updateMaterial } from '../actions';
-import { SheetDescription } from '@/components/ui/sheet';
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -37,12 +35,13 @@ const formSchema = z.object({
 type MaterialFormValues = z.infer<typeof formSchema>;
 
 interface MaterialFormProps {
-    initialData?: RawMaterial;
+    initialData?: Omit<RawMaterial, 'id'>;
     onClose: () => void;
     providers?: string[];
+    onSave: (data: MaterialFormValues) => void;
 }
 
-export function MaterialForm({ initialData, onClose, providers = [] }: MaterialFormProps) {
+export function MaterialForm({ initialData, onClose, providers = [], onSave }: MaterialFormProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -82,20 +81,18 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
     const onSubmit = async (data: MaterialFormValues) => {
         setIsSubmitting(true);
         try {
+            onSave(data);
             if (initialData) {
-                await updateMaterial(initialData.id, data);
-                toast({
+                 toast({
                     title: "Material Updated",
                     description: `The material "${data.shortName}" has been saved.`,
                 });
             } else {
-                await createMaterial(data);
                 toast({
                     title: "Material Created",
                     description: `The material "${data.shortName}" has been saved.`,
                 });
             }
-            onClose();
         } catch (error) {
             toast({
                 variant: 'destructive',
@@ -104,14 +101,11 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
             });
         } finally {
             setIsSubmitting(false);
+            onClose();
         }
     };
 
   return (
-    <>
-    <SheetDescription>
-      Add the details of your new raw material. Only the short name, quantity, unit, and cost are required.
-    </SheetDescription>
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-4">
         <ScrollArea className="h-[calc(100vh-12rem)]">
@@ -286,6 +280,5 @@ export function MaterialForm({ initialData, onClose, providers = [] }: MaterialF
         </div>
       </form>
     </Form>
-    </>
   );
 }

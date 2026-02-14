@@ -18,33 +18,39 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
-import { deleteMaterial } from "../actions"
 
 const ActionsCell = ({ row, table }: { row: any; table: any }) => {
     const material = row.original as RawMaterial;
-    const [isSheetOpen, setIsSheetOpen] = React.useState(false);
-    const [isAlertOpen, setIsAlertOpen] = React.useState(false);
+    const [isEditSheetOpen, setIsEditSheetOpen] = React.useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
     const [isDeleting, setIsDeleting] = React.useState(false);
-    const providers = table.options.meta?.providers;
     const { toast } = useToast();
 
-    const editableMaterial = {
-        ...material,
-        cost: material.cost
+    const meta = table.options.meta as {
+        providers: string[];
+        updateMaterial: (id: string, data: Partial<Omit<RawMaterial, 'id'>>) => void;
+        deleteMaterial: (id: string) => void;
+    };
+    
+    const providers = meta?.providers ?? [];
+
+    const handleUpdate = (formData: Omit<RawMaterial, 'id'>) => {
+        meta.updateMaterial(material.id, formData);
+        toast({
+            title: "Material Updated",
+            description: `The material "${formData.shortName}" has been saved.`,
+        });
+        setIsEditSheetOpen(false);
     }
 
     const handleDelete = async () => {
         setIsDeleting(true);
         try {
-            const result = await deleteMaterial(material.id);
-            if (result.success) {
-                toast({
-                    title: "Material Deleted",
-                    description: `The material "${material.shortName}" has been deleted.`,
-                });
-            } else {
-                throw new Error(result.error);
-            }
+            meta.deleteMaterial(material.id);
+            toast({
+                title: "Material Deleted",
+                description: `The material "${material.shortName}" has been deleted.`,
+            });
         } catch (error) {
             toast({
                 variant: 'destructive',
@@ -53,19 +59,19 @@ const ActionsCell = ({ row, table }: { row: any; table: any }) => {
             });
         } finally {
             setIsDeleting(false);
-            setIsAlertOpen(false);
+            setIsDeleteDialogOpen(false);
         }
     }
     
     return (
         <>
-            <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete the
-                            raw material and remove it from any recipes where it is used.
+                            raw material.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -81,21 +87,26 @@ const ActionsCell = ({ row, table }: { row: any; table: any }) => {
                 </AlertDialogContent>
             </AlertDialog>
 
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
                 <SheetContent className="sm:max-w-2xl">
                     <SheetHeader>
                         <SheetTitle>Edit Raw Material</SheetTitle>
                     </SheetHeader>
-                    <MaterialForm initialData={editableMaterial} onClose={() => setIsSheetOpen(false)} providers={providers} />
+                    <MaterialForm 
+                        initialData={material}
+                        onSave={handleUpdate} 
+                        onClose={() => setIsEditSheetOpen(false)} 
+                        providers={providers} 
+                    />
                 </SheetContent>
             </Sheet>
 
             <div className="flex items-center justify-end space-x-1">
-                <Button variant="ghost" size="icon" onClick={() => setIsSheetOpen(true)}>
+                <Button variant="ghost" size="icon" onClick={() => setIsEditSheetOpen(true)}>
                     <Edit className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                 </Button>
-                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setIsAlertOpen(true)}>
+                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setIsDeleteDialogOpen(true)}>
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                 </Button>

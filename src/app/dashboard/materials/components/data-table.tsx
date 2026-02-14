@@ -5,6 +5,7 @@ import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
+  TableMeta,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -27,13 +28,13 @@ import { Input } from "@/components/ui/input"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  providers?: string[]
+  meta?: TableMeta<TData>
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  providers
+  meta,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -52,9 +53,7 @@ export function DataTable<TData, TValue>({
       sorting,
       columnFilters,
     },
-    meta: {
-        providers,
-    }
+    meta,
   })
 
   return (
