@@ -10,13 +10,7 @@ import {
 } from '@/components/ui/card';
 import { recipes } from '@/lib/data';
 import { calculateRecipeCost } from '@/lib/utils';
-import { MoreVertical, PlusCircle } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Edit, PlusCircle, Trash2 } from 'lucide-react';
 
 export default function RecipesPage() {
   return (
@@ -48,17 +42,20 @@ export default function RecipesPage() {
                   <CardTitle className="font-headline">{recipe.name}</CardTitle>
                   <CardDescription>{recipe.category}</CardDescription>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center space-x-1 -mr-2">
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Edit className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground line-clamp-2">
