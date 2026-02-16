@@ -37,32 +37,16 @@ export default function RecipesPage() {
           const cost = calculateRecipeCost(recipe);
           return (
             <Card key={recipe.id}>
-              <CardHeader className="flex flex-row items-start justify-between">
-                <div>
-                  <CardTitle className="font-headline">{recipe.name}</CardTitle>
-                  <CardDescription>{recipe.category}</CardDescription>
-                </div>
-                <div className="flex items-center space-x-1 -mr-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Edit className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </div>
+              <CardHeader>
+                <CardTitle className="font-headline">{recipe.name}</CardTitle>
+                <CardDescription>{recipe.category}</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {recipe.description}
                 </p>
               </CardContent>
-              <CardFooter className="flex justify-between text-sm">
+              <CardFooter className="flex justify-between items-center text-sm">
                 <div className="flex flex-col">
                   <span className="font-semibold">
                     {new Intl.NumberFormat('en-US', {
@@ -72,16 +56,32 @@ export default function RecipesPage() {
                   </span>
                   <span className="text-muted-foreground">Total Cost</span>
                 </div>
-                <div className="flex flex-col text-right">
-                  <span className="font-semibold">
-                     {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD',
-                    }).format(cost.costPerPortion)}
-                  </span>
-                  <span className="text-muted-foreground">
-                    Cost / Portion ({recipe.portions})
-                  </span>
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col text-right">
+                    <span className="font-semibold">
+                       {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                      }).format(cost.costPerPortion)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      Cost / Portion ({recipe.portions})
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Edit className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </div>
                 </div>
               </CardFooter>
             </Card>
