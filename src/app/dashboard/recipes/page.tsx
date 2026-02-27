@@ -26,12 +26,32 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { RecipeForm } from './components/recipe-form';
+import { useRawMaterials } from '@/hooks/use-raw-materials';
+import type { Recipe } from '@/lib/types';
+import type { RecipeFormValues } from '@/hooks/use-recipes';
 
 export default function RecipesPage() {
-  const { recipes, isLoading, deleteRecipe } = useRecipes();
+  const { recipes, isLoading, deleteRecipe, updateRecipe } = useRecipes();
+  const { materials, isLoading: isLoadingMaterials } = useRawMaterials();
   const [isDeleting, setIsDeleting] = useState(false);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
+
+  const handleEdit = (recipe: Recipe) => {
+    setRecipeToEdit(recipe);
+    setIsEditSheetOpen(true);
+  };
+
+  const handleUpdateRecipe = (data: RecipeFormValues) => {
+    if (!recipeToEdit) return;
+    updateRecipe(recipeToEdit.id, data);
+    setIsEditSheetOpen(false);
+  };
 
   const handleDelete = async () => {
     if (!recipeToDelete) return;
@@ -56,7 +76,7 @@ export default function RecipesPage() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingMaterials) {
     return (
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
             <div className="flex items-center justify-between">
@@ -101,6 +121,21 @@ export default function RecipesPage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+        <Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
+            <SheetContent className="sm:max-w-2xl">
+                <SheetHeader>
+                    <SheetTitle>Edit Recipe</SheetTitle>
+                </SheetHeader>
+                {recipeToEdit && (
+                    <RecipeForm 
+                        initialData={recipeToEdit}
+                        onSave={handleUpdateRecipe} 
+                        rawMaterials={materials}
+                        onCancel={() => setIsEditSheetOpen(false)}
+                    />
+                )}
+            </SheetContent>
+        </Sheet>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-headline text-3xl font-bold tracking-tight">
@@ -156,13 +191,12 @@ export default function RecipesPage() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex-col items-start">
+                 <div className="flex-grow w-full"></div>
                 <div className="flex items-center space-x-1 ml-auto">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                    <Link href={`/dashboard/recipes/${recipe.id}/edit`}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(recipe)}>
                       <Edit className="h-4 w-4" />
                       <span className="sr-only">Edit</span>
-                    </Link>
                   </Button>
                   <Button
                     variant="ghost"
