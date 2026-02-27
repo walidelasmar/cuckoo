@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import * as z from 'zod';
@@ -23,13 +24,16 @@ import type { RawMaterial, Recipe } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { calculateRecipeCost } from '@/lib/utils';
+import { CostBreakdownChart } from './cost-breakdown-chart';
 
 const recipeFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  category: z.string().optional(),
   description: z.string().optional(),
+  category: z.string().optional(),
   portions: z.coerce.number().min(1, 'Number of Servings must be at least 1'),
+  pricePerServing: z.coerce.number().min(0, 'Price must be positive.').optional(),
   ingredients: z.array(z.object({
     id: z.string().optional(),
     rawMaterialId: z.string().min(1, 'Ingredient is required'),
@@ -38,7 +42,7 @@ const recipeFormSchema = z.object({
   })).min(1, 'At least one ingredient is required.'),
 });
 
-type RecipeFormValues = z.infer<typeof recipeFormSchema>;
+export type RecipeFormValues = z.infer<typeof recipeFormSchema>;
 
 interface RecipeFormProps {
     initialData?: Recipe;
@@ -55,6 +59,7 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
         resolver: zodResolver(recipeFormSchema),
         defaultValues: initialData ? {
             ...initialData,
+            pricePerServing: initialData.pricePerServing,
             ingredients: initialData.ingredients.map(i => ({
                 id: i.id,
                 rawMaterialId: i.rawMaterial.id,
@@ -66,6 +71,7 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
             category: '',
             description: '',
             portions: 1,
+            pricePerServing: 0.00,
             ingredients: []
         },
     });
@@ -74,6 +80,52 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
         control: form.control,
         name: "ingredients"
     });
+
+    const watchedIngredients = form.watch('ingredients');
+    const watchedPortions = form.watch('portions');
+    const watchedPricePerServing = form.watch('pricePerServing');
+
+    const rawMaterialsById = React.useMemo(() => new Map(rawMaterials.map(m => [m.id, m])), [rawMaterials]);
+    
+    const { totalCost, costPerPortion, chartData } = React.useMemo(() => {
+        const hydratedIngredients = watchedIngredients.map(ing => ({
+            ...ing,
+            id: ing.id || '',
+            rawMaterial: rawMaterialsById.get(ing.rawMaterialId)!
+        })).filter(i => i.rawMaterial);
+    
+        const recipeForCosting: Recipe = {
+            id: initialData?.id || '',
+            name: form.getValues('name'),
+            category: form.getValues('category') || '',
+            description: form.getValues('description') || '',
+            portions: watchedPortions,
+            ingredients: hydratedIngredients,
+        };
+        
+        const { totalCost, costPerPortion } = calculateRecipeCost(recipeForCosting);
+        
+        const chartData = hydratedIngredients.map(ingredient => {
+            const { totalCost: ingredientCost } = calculateRecipeCost({
+                id: '',
+                name: '',
+                category: '',
+                description: '',
+                portions: 1,
+                ingredients: [ingredient]
+            });
+            return { name: ingredient.rawMaterial.shortName, cost: ingredientCost };
+        });
+    
+        return { totalCost, costPerPortion, chartData };
+    }, [watchedIngredients, watchedPortions, rawMaterialsById, initialData?.id, form]);
+
+    const profitMargin = (watchedPricePerServing && watchedPricePerServing > 0 && costPerPortion > 0)
+        ? ((watchedPricePerServing - costPerPortion) / watchedPricePerServing) * 100
+        : 0;
+
+    const portionsForChart = watchedPortions > 0 ? watchedPortions : 1;
+    const chartDataPerServing = chartData.map(d => ({ ...d, cost: d.cost / portionsForChart }));
 
     const onSubmit = async (data: RecipeFormValues) => {
         setIsSubmitting(true);
@@ -139,22 +191,6 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                                 <FormControl>
                                     <Input placeholder="e.g. Breakfast" {...field} value={field.value ?? ''} />
                                 </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="portions"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Number of Servings</FormLabel>
-                                <FormControl>
-                                    <Input type="number" placeholder="4" {...field} />
-                                </FormControl>
-                                <FormDescription>
-                                    How many servings does this recipe make?
-                                </FormDescription>
                                 <FormMessage />
                                 </FormItem>
                             )}
@@ -255,6 +291,97 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                             Add Ingredient
                         </Button>
                         <FormMessage>{form.formState.errors.ingredients?.message}</FormMessage>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Economics</CardTitle>
+                        <CardDescription>Analyze the cost and profitability of your recipe.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="portions"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Number of Servings</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="4" {...field} />
+                                        </FormControl>
+                                         <FormDescription>
+                                            How many servings does this recipe make?
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="pricePerServing"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Price per Serving</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <span className="text-muted-foreground sm:text-sm">$</span>
+                                                </div>
+                                                <Input
+                                                    type="number"
+                                                    inputMode="decimal"
+                                                    placeholder="0.00"
+                                                    step="0.01"
+                                                    {...field}
+                                                    onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
+                                                    className="pl-7"
+                                                />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                             <FormItem>
+                                <FormLabel>Total Cost</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="text"
+                                        value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalCost)}
+                                        disabled
+                                        className="disabled:opacity-100 disabled:cursor-default"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                            <FormItem>
+                                <FormLabel>Cost per Serving</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="text"
+                                        value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(costPerPortion)}
+                                        disabled
+                                        className="disabled:opacity-100 disabled:cursor-default"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                            <FormItem>
+                                <FormLabel>Profit Margin</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="text"
+                                        value={`${profitMargin.toFixed(2)}%`}
+                                        disabled
+                                        className="disabled:opacity-100 disabled:cursor-default"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        </div>
+                        <div className="pt-4">
+                            <FormLabel>Cost Breakdown per Serving</FormLabel>
+                            <CostBreakdownChart data={chartDataPerServing} />
+                        </div>
                     </CardContent>
                 </Card>
             </div>

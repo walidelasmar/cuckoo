@@ -37,4 +37,5 @@ export type Recipe = {
   description: string;
   portions: number;
   ingredients: Ingredient[];
+  pricePerServing?: number;
 };

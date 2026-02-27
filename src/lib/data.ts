@@ -82,6 +82,7 @@ export const recipes: Recipe[] = [
     category: 'Breakfast',
     description: 'Fluffy, homemade pancakes from scratch.',
     portions: 4,
+    pricePerServing: 6.5,
     ingredients: [
       {
         id: 'ing-1-1',
@@ -115,6 +116,7 @@ export const recipes: Recipe[] = [
     category: 'Lunch',
     description: 'A classic beef burger.',
     portions: 4,
+    pricePerServing: 12,
     ingredients: [
        {
         id: 'ing-2-1',
