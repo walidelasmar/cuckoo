@@ -119,37 +119,19 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                                 </FormItem>
                             )}
                         />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="category"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Category</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="e.g. Breakfast" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="portions"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Portions</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" placeholder="4" {...field} />
-                                    </FormControl>
-                                    <FormDescription>
-                                        How many servings does this recipe make?
-                                    </FormDescription>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                        <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g. Breakfast" {...field} value={field.value ?? ''} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                          <FormField
                             control={form.control}
                             name="description"
@@ -157,8 +139,24 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                                 <FormItem>
                                 <FormLabel>Description</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="A short description of the recipe..." {...field} />
+                                    <Textarea placeholder="A short description of the recipe..." {...field} value={field.value ?? ''}/>
                                 </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="portions"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Portions</FormLabel>
+                                <FormControl>
+                                    <Input type="number" placeholder="4" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                    How many servings does this recipe make?
+                                </FormDescription>
                                 <FormMessage />
                                 </FormItem>
                             )}
