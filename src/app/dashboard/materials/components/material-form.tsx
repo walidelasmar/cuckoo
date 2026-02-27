@@ -297,7 +297,7 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
                                             '--allergen-fg-color': `hsl(var(--allergen-${theme}-fg))`,
                                           } as React.CSSProperties}
                                           className={cn(
-                                            'rounded-full h-8 px-3',
+                                            'rounded-full h-8 px-3 border-2',
                                             isSelected && `bg-[--allergen-bg-color] text-[--allergen-fg-color] border-transparent hover:bg-[--allergen-bg-color]`
                                           )}
                                           onClick={() => {
