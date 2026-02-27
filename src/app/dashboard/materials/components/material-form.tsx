@@ -301,7 +301,7 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
                                             'rounded-full h-8 px-3 border',
                                             isSelected 
                                                 ? `bg-[--allergen-bg-color] text-[--allergen-fg-color] border-[--allergen-border-color] hover:bg-[--allergen-bg-color] hover:border-[--allergen-border-color]`
-                                                : 'border-[hsl(var(--muted-foreground))] text-muted-foreground'
+                                                : 'border-[hsl(var(--muted-foreground))] text-[hsl(var(--allergen-unselected-fg))]'
                                           )}
                                           onClick={() => {
                                               const currentAllergens = field.value || [];
