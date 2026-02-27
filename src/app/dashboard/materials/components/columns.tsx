@@ -18,7 +18,6 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
-import { Badge } from "@/components/ui/badge"
 
 const ActionsCell = ({ row, table }: { row: any; table: any }) => {
     const material = row.original as RawMaterial;
@@ -199,23 +198,6 @@ export const columns: ColumnDef<RawMaterial>[] = [
         maximumFractionDigits: 2,
       }).format(costPerUnit);
       return <div className="text-right font-medium">{`${formatted}/${unit}`}</div>;
-    },
-  },
-  {
-    accessorKey: "allergens",
-    header: "Allergens",
-    cell: ({ row }) => {
-      const allergens = row.original.allergens;
-      if (!allergens || allergens.length === 0) {
-          return <div className="text-center">-</div>;
-      }
-      return (
-          <div className="flex flex-wrap gap-1">
-              {allergens.map(allergen => (
-                  <Badge key={allergen} variant="secondary">{allergen}</Badge>
-              ))}
-          </div>
-      )
     },
   },
   {
