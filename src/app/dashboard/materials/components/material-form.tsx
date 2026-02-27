@@ -295,10 +295,13 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
                                           style={{
                                             '--allergen-bg-color': `hsl(var(--allergen-${theme}-bg))`,
                                             '--allergen-fg-color': `hsl(var(--allergen-${theme}-fg))`,
+                                            '--allergen-border-color': `hsl(var(--allergen-${theme}-border))`,
                                           } as React.CSSProperties}
                                           className={cn(
                                             'rounded-full h-8 px-3 border-2',
-                                            isSelected && `bg-[--allergen-bg-color] text-[--allergen-fg-color] border-transparent hover:bg-[--allergen-bg-color]`
+                                            isSelected 
+                                                ? `bg-[--allergen-bg-color] text-[--allergen-fg-color] border-[--allergen-border-color] hover:bg-[--allergen-bg-color] hover:border-[--allergen-border-color]`
+                                                : 'border-border'
                                           )}
                                           onClick={() => {
                                               const currentAllergens = field.value || [];

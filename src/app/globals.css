@@ -41,32 +41,46 @@
 
     --allergen-dairy-bg: 210 100% 96%;
     --allergen-dairy-fg: 210 90% 40%;
+    --allergen-dairy-border: 210 100% 88%;
     --allergen-eggs-bg: 50 100% 94%;
     --allergen-eggs-fg: 45 90% 40%;
+    --allergen-eggs-border: 50 100% 86%;
     --allergen-peanuts-bg: 30 60% 95%;
     --allergen-peanuts-fg: 30 90% 40%;
+    --allergen-peanuts-border: 30 60% 87%;
     --allergen-tree-nuts-bg: 30 60% 95%;
     --allergen-tree-nuts-fg: 30 90% 40%;
+    --allergen-tree-nuts-border: 30 60% 87%;
     --allergen-fish-bg: 200 100% 96%;
     --allergen-fish-fg: 200 90% 40%;
+    --allergen-fish-border: 200 100% 88%;
     --allergen-crustaceans-bg: 0 80% 96%;
     --allergen-crustaceans-fg: 0 70% 45%;
+    --allergen-crustaceans-border: 0 80% 88%;
     --allergen-soybeans-bg: 110 70% 96%;
     --allergen-soybeans-fg: 110 60% 40%;
+    --allergen-soybeans-border: 110 70% 88%;
     --allergen-gluten-bg: 40 50% 95%;
     --allergen-gluten-fg: 40 80% 40%;
+    --allergen-gluten-border: 40 50% 87%;
     --allergen-sesame-bg: 40 50% 95%;
     --allergen-sesame-fg: 40 80% 40%;
+    --allergen-sesame-border: 40 50% 87%;
     --allergen-molluscs-bg: 220 20% 96%;
     --allergen-molluscs-fg: 220 20% 40%;
+    --allergen-molluscs-border: 220 20% 88%;
     --allergen-celery-bg: 100 70% 96%;
     --allergen-celery-fg: 100 60% 35%;
+    --allergen-celery-border: 100 70% 88%;
     --allergen-mustard-bg: 55 80% 94%;
     --allergen-mustard-fg: 55 90% 40%;
+    --allergen-mustard-border: 55 80% 86%;
     --allergen-lupin-bg: 280 60% 96%;
     --allergen-lupin-fg: 280 50% 45%;
+    --allergen-lupin-border: 280 60% 88%;
     --allergen-sulphites-bg: 240 10% 96%;
     --allergen-sulphites-fg: 240 10% 40%;
+    --allergen-sulphites-border: 240 10% 88%;
   }
 }
 
