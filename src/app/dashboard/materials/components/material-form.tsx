@@ -16,10 +16,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UNITS, ALLERGENS } from '@/lib/constants';
+import { UNITS, ALLERGENS, ALLERGEN_THEMES } from '@/lib/constants';
 import type { RawMaterial } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -284,13 +285,21 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
                           <div className="flex flex-wrap gap-2">
                               {ALLERGENS.map((allergen) => {
                                   const isSelected = field.value?.includes(allergen);
+                                  const theme = ALLERGEN_THEMES[allergen];
                                   return (
                                       <Button
                                           key={allergen}
                                           type="button"
-                                          variant={isSelected ? 'secondary' : 'outline'}
+                                          variant="outline"
                                           size="sm"
-                                          className="rounded-full h-8 px-3"
+                                          style={{
+                                            '--allergen-bg-color': `hsl(var(--allergen-${theme}-bg))`,
+                                            '--allergen-fg-color': `hsl(var(--allergen-${theme}-fg))`,
+                                          } as React.CSSProperties}
+                                          className={cn(
+                                            'rounded-full h-8 px-3',
+                                            isSelected && `bg-[--allergen-bg-color] text-[--allergen-fg-color] border-transparent hover:bg-[--allergen-bg-color]`
+                                          )}
                                           onClick={() => {
                                               const currentAllergens = field.value || [];
                                               if (isSelected) {

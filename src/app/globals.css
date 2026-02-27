@@ -38,6 +38,35 @@
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 232 57% 35%;
     --sidebar-ring: 243 76% 56%;
+
+    --allergen-dairy-bg: 210 100% 96%;
+    --allergen-dairy-fg: 210 90% 40%;
+    --allergen-eggs-bg: 50 100% 94%;
+    --allergen-eggs-fg: 45 90% 40%;
+    --allergen-peanuts-bg: 30 60% 95%;
+    --allergen-peanuts-fg: 30 90% 40%;
+    --allergen-tree-nuts-bg: 30 60% 95%;
+    --allergen-tree-nuts-fg: 30 90% 40%;
+    --allergen-fish-bg: 200 100% 96%;
+    --allergen-fish-fg: 200 90% 40%;
+    --allergen-crustaceans-bg: 0 80% 96%;
+    --allergen-crustaceans-fg: 0 70% 45%;
+    --allergen-soybeans-bg: 110 70% 96%;
+    --allergen-soybeans-fg: 110 60% 40%;
+    --allergen-gluten-bg: 40 50% 95%;
+    --allergen-gluten-fg: 40 80% 40%;
+    --allergen-sesame-bg: 40 50% 95%;
+    --allergen-sesame-fg: 40 80% 40%;
+    --allergen-molluscs-bg: 220 20% 96%;
+    --allergen-molluscs-fg: 220 20% 40%;
+    --allergen-celery-bg: 100 70% 96%;
+    --allergen-celery-fg: 100 60% 35%;
+    --allergen-mustard-bg: 55 80% 94%;
+    --allergen-mustard-fg: 55 90% 40%;
+    --allergen-lupin-bg: 280 60% 96%;
+    --allergen-lupin-fg: 280 50% 45%;
+    --allergen-sulphites-bg: 240 10% 96%;
+    --allergen-sulphites-fg: 240 10% 40%;
   }
 }
 

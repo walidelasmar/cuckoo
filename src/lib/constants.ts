@@ -42,3 +42,20 @@ export const ALLERGENS = [
   'Lupin',
   'Sulphites',
 ] as const;
+
+export const ALLERGEN_THEMES: { [key: string]: string } = {
+    'Dairy': 'dairy',
+    'Eggs': 'eggs',
+    'Peanuts': 'peanuts',
+    'Tree Nuts': 'tree-nuts',
+    'Fish': 'fish',
+    'Crustaceans': 'crustaceans',
+    'Soybeans (Soya)': 'soybeans',
+    'Gluten': 'gluten',
+    'Sesame': 'sesame',
+    'Molluscs': 'molluscs',
+    'Celery': 'celery',
+    'Mustard': 'mustard',
+    'Lupin': 'lupin',
+    'Sulphites': 'sulphites',
+};
