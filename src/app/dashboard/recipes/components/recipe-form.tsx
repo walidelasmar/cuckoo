@@ -29,7 +29,7 @@ const recipeFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   category: z.string().optional(),
   description: z.string().optional(),
-  portions: z.coerce.number().min(1, 'Portions must be at least 1'),
+  portions: z.coerce.number().min(1, 'Number of Servings must be at least 1'),
   ingredients: z.array(z.object({
     id: z.string().optional(),
     rawMaterialId: z.string().min(1, 'Ingredient is required'),
@@ -148,7 +148,7 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                             name="portions"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Portions</FormLabel>
+                                <FormLabel>Number of Servings</FormLabel>
                                 <FormControl>
                                     <Input type="number" placeholder="4" {...field} />
                                 </FormControl>
