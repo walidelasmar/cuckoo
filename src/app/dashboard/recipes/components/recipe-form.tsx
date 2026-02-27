@@ -117,19 +117,6 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="category"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Category</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. Breakfast" {...field} value={field.value ?? ''} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                          <FormField
                             control={form.control}
                             name="description"
@@ -138,6 +125,19 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                                 <FormLabel>Description</FormLabel>
                                 <FormControl>
                                     <Textarea placeholder="A short description of the recipe..." {...field} value={field.value ?? ''}/>
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g. Breakfast" {...field} value={field.value ?? ''} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
