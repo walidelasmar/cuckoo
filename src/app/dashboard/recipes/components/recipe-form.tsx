@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import * as z from 'zod';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -25,7 +24,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 
 const recipeFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -98,9 +96,9 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid grid-cols-1 gap-8">
-            <div className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-4">
+        <ScrollArea className="h-[calc(100vh-12rem)]">
+            <div className="space-y-6 p-1 pr-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Recipe Details</CardTitle>
@@ -260,8 +258,8 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                     </CardContent>
                 </Card>
             </div>
-        </div>
-        <div className="flex justify-end gap-2">
+        </ScrollArea>
+        <div className="flex justify-end gap-2 pr-4">
             <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
               Cancel
             </Button>
