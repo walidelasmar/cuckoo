@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,14 +25,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { RecipeForm } from './components/recipe-form';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
 import type { Recipe } from '@/lib/types';
 import type { RecipeFormValues } from '@/hooks/use-recipes';
 
 export default function RecipesPage() {
-  const { recipes, isLoading, deleteRecipe, updateRecipe } = useRecipes();
+  const { recipes, isLoading, deleteRecipe, updateRecipe, addRecipe } = useRecipes();
   const { materials, isLoading: isLoadingMaterials } = useRawMaterials();
   const [isDeleting, setIsDeleting] = useState(false);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
@@ -41,6 +40,7 @@ export default function RecipesPage() {
 
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
+  const [isNewSheetOpen, setIsNewSheetOpen] = useState(false);
 
   const handleEdit = (recipe: Recipe) => {
     setRecipeToEdit(recipe);
@@ -51,6 +51,11 @@ export default function RecipesPage() {
     if (!recipeToEdit) return;
     updateRecipe(recipeToEdit.id, data);
     setIsEditSheetOpen(false);
+  };
+
+  const handleAddNewRecipe = (data: RecipeFormValues) => {
+    addRecipe(data);
+    setIsNewSheetOpen(false);
   };
 
   const handleDelete = async () => {
@@ -145,12 +150,24 @@ export default function RecipesPage() {
             Create, manage, and calculate costs for your menu items.
           </p>
         </div>
-        <Button asChild size="sm" className="gap-1">
-          <Link href="/dashboard/recipes/new">
-            <PlusCircle className="h-4 w-4" />
-            New Recipe
-          </Link>
-        </Button>
+        <Sheet open={isNewSheetOpen} onOpenChange={setIsNewSheetOpen}>
+            <SheetTrigger asChild>
+                <Button size="sm" className="gap-1">
+                    <PlusCircle className="h-4 w-4" />
+                    New Recipe
+                </Button>
+            </SheetTrigger>
+            <SheetContent className="sm:max-w-2xl">
+                <SheetHeader>
+                    <SheetTitle>Create New Recipe</SheetTitle>
+                </SheetHeader>
+                <RecipeForm
+                    onSave={handleAddNewRecipe}
+                    rawMaterials={materials}
+                    onCancel={() => setIsNewSheetOpen(false)}
+                />
+            </SheetContent>
+        </Sheet>
       </div>
 
       <div className="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3">
