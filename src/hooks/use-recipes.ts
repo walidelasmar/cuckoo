@@ -12,7 +12,7 @@ type StorableRecipe = Omit<Recipe, 'ingredients'> & {
   ingredients: StorableIngredient[];
 }
 export type RecipeFormValues = Omit<Recipe, 'id' | 'ingredients'> & {
-  ingredients: (Omit<Ingredient, 'id' | 'rawMaterial'> & { rawMaterialId: string })[]
+  ingredients: (Omit<Ingredient, 'rawMaterial'> & { rawMaterialId: string })[]
 };
 
 export function useRecipes() {
@@ -102,11 +102,34 @@ export function useRecipes() {
     return newRecipe;
   };
 
+  const updateRecipe = (id: string, updatedRecipeData: RecipeFormValues) => {
+    const materials = getMaterials();
+    const materialsById = new Map(materials.map(m => [m.id, m]));
+
+    const updatedRecipes = recipes.map(recipe => {
+      if (recipe.id === id) {
+        return {
+          ...recipe,
+          ...updatedRecipeData,
+          ingredients: updatedRecipeData.ingredients.map(ing => ({
+            id: ing.id || `ing-${Date.now()}-${Math.random()}`, // create id for new ingredients
+            quantity: ing.quantity,
+            unit: ing.unit,
+            rawMaterial: materialsById.get(ing.rawMaterialId)!,
+          })),
+        };
+      }
+      return recipe;
+    });
+    setRecipes(updatedRecipes);
+    updateLocalStorage(updatedRecipes);
+  };
+
   const deleteRecipe = (id: string) => {
     const updatedRecipes = recipes.filter((recipe) => recipe.id !== id);
     setRecipes(updatedRecipes);
     updateLocalStorage(updatedRecipes);
   };
   
-  return { recipes, isLoading, addRecipe, deleteRecipe };
+  return { recipes, isLoading, addRecipe, updateRecipe, deleteRecipe };
 }

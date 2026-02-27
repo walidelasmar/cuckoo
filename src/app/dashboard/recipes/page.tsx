@@ -128,10 +128,9 @@ export default function RecipesPage() {
                 <CardDescription>{recipe.category}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col flex-grow">
-                <p className="text-sm text-muted-foreground line-clamp-2">
+                <p className="text-sm text-muted-foreground line-clamp-2 flex-grow">
                   {recipe.description}
                 </p>
-                <div className="flex-grow" />
                 <div className="flex justify-between items-center pt-4 text-sm">
                   <div className="flex flex-col">
                     <span className="font-semibold">
@@ -159,9 +158,11 @@ export default function RecipesPage() {
               </CardContent>
               <CardFooter>
                 <div className="flex items-center space-x-1 ml-auto">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Edit className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                    <Link href={`/dashboard/recipes/${recipe.id}/edit`}>
+                      <Edit className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Link>
                   </Button>
                   <Button
                     variant="ghost"

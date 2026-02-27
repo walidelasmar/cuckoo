@@ -33,6 +33,7 @@ const recipeFormSchema = z.object({
   description: z.string().optional(),
   portions: z.coerce.number().min(1, 'Portions must be at least 1'),
   ingredients: z.array(z.object({
+    id: z.string().optional(),
     rawMaterialId: z.string().min(1, 'Ingredient is required'),
     quantity: z.coerce.number().min(0.0001, 'Quantity must be positive'),
     unit: z.enum(['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'pc']),
@@ -57,6 +58,7 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
         defaultValues: initialData ? {
             ...initialData,
             ingredients: initialData.ingredients.map(i => ({
+                id: i.id,
                 rawMaterialId: i.rawMaterial.id,
                 quantity: i.quantity,
                 unit: i.unit,
