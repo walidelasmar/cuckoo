@@ -19,13 +19,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { UNITS } from '@/lib/constants';
+import { ALLERGEN_THEMES, UNITS } from '@/lib/constants';
 import type { RawMaterial, Recipe } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { calculateRecipeCost } from '@/lib/utils';
+import { calculateRecipeCost, cn } from '@/lib/utils';
 import { CostBreakdownChart } from './cost-breakdown-chart';
 
 const recipeFormSchema = z.object({
@@ -126,6 +126,19 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
 
     const portionsForChart = watchedPortions > 0 ? watchedPortions : 1;
     const chartDataPerServing = chartData.map(d => ({ ...d, cost: d.cost / portionsForChart }));
+
+    const detectedAllergens = React.useMemo(() => {
+        const allergenSet = new Set<string>();
+        watchedIngredients.forEach(ing => {
+            const material = rawMaterialsById.get(ing.rawMaterialId);
+            if (material && material.allergens) {
+                material.allergens.forEach(allergen => {
+                    allergenSet.add(allergen);
+                });
+            }
+        });
+        return Array.from(allergenSet).sort();
+    }, [watchedIngredients, rawMaterialsById]);
 
     const onSubmit = async (data: RecipeFormValues) => {
         setIsSubmitting(true);
@@ -307,6 +320,43 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                             Add Ingredient
                         </Button>
                         <FormMessage>{form.formState.errors.ingredients?.message}</FormMessage>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Allergens</CardTitle>
+                        <CardDescription>
+                            Allergens present in this recipe based on its ingredients.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {detectedAllergens.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                                {detectedAllergens.map((allergen) => {
+                                    const theme = ALLERGEN_THEMES[allergen];
+                                    return (
+                                        <div
+                                            key={allergen}
+                                            style={{
+                                                '--allergen-bg-color': `hsl(var(--allergen-${theme}-bg))`,
+                                                '--allergen-fg-color': `hsl(var(--allergen-${theme}-fg))`,
+                                                '--allergen-border-color': `hsl(var(--allergen-${theme}-border))`,
+                                            } as React.CSSProperties}
+                                            className={cn(
+                                                'rounded-full h-8 px-3 border flex items-center justify-center text-sm font-medium',
+                                                'bg-[--allergen-bg-color] text-[--allergen-fg-color] border-[--allergen-border-color]'
+                                            )}
+                                        >
+                                            {allergen}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                No allergens detected from the current ingredients.
+                            </p>
+                        )}
                     </CardContent>
                 </Card>
                  <Card>
