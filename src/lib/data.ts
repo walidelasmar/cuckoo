@@ -11,6 +11,7 @@ export const rawMaterials: RawMaterial[] = [
     quantity: 25,
     unit: 'kg',
     cost: 30.0,
+    allergens: ['Gluten'],
   },
   {
     id: 'mat-2',
@@ -22,6 +23,7 @@ export const rawMaterials: RawMaterial[] = [
     quantity: 1,
     unit: 'l',
     cost: 3.5,
+    allergens: ['Dairy'],
   },
   {
     id: 'mat-3',
@@ -33,6 +35,7 @@ export const rawMaterials: RawMaterial[] = [
     quantity: 12,
     unit: 'pc',
     cost: 4.0,
+    allergens: ['Eggs'],
   },
   {
     id: 'mat-4',
@@ -44,6 +47,7 @@ export const rawMaterials: RawMaterial[] = [
     quantity: 10,
     unit: 'lb',
     cost: 8.0,
+    allergens: [],
   },
    {
     id: 'mat-5',
@@ -54,7 +58,8 @@ export const rawMaterials: RawMaterial[] = [
     sku: 'VV-YO-50LB',
     quantity: 50,
     unit: 'lb',
-    cost: 25.00
+    cost: 25.00,
+    allergens: [],
   },
   {
     id: 'mat-6',
@@ -65,7 +70,8 @@ export const rawMaterials: RawMaterial[] = [
     sku: 'BB-GB-10LB',
     quantity: 10,
     unit: 'lb',
-    cost: 45.00
+    cost: 45.00,
+    allergens: [],
   },
 ];
 

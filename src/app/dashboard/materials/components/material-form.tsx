@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UNITS } from '@/lib/constants';
+import { UNITS, ALLERGENS } from '@/lib/constants';
 import type { RawMaterial } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
@@ -30,6 +30,7 @@ const formSchema = z.object({
   quantity: z.coerce.number().min(0, { message: 'Quantity must be positive.' }),
   unit: z.enum(['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'pc']),
   cost: z.coerce.number().min(0, { message: 'Cost must be positive.' }),
+  allergens: z.array(z.string()).optional(),
 });
 
 type MaterialFormValues = z.infer<typeof formSchema>;
@@ -54,6 +55,7 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
             name: initialData.name ?? '',
             sku: initialData.sku ?? '',
             cost: initialData.cost.toFixed(2),
+            allergens: initialData.allergens ?? [],
         } : {
             name: '',
             shortName: '',
@@ -62,7 +64,8 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
             sku: '',
             quantity: 0,
             unit: 'pc',
-            cost: '0.00'
+            cost: '0.00',
+            allergens: [],
         },
     });
 
@@ -271,6 +274,42 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
                     </FormControl>
                 </FormItem>
             </div>
+            <FormField
+              control={form.control}
+              name="allergens"
+              render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Allergens</FormLabel>
+                      <FormControl>
+                          <div className="flex flex-wrap gap-2">
+                              {ALLERGENS.map((allergen) => {
+                                  const isSelected = field.value?.includes(allergen);
+                                  return (
+                                      <Button
+                                          key={allergen}
+                                          type="button"
+                                          variant={isSelected ? 'secondary' : 'outline'}
+                                          size="sm"
+                                          className="rounded-full h-8 px-3"
+                                          onClick={() => {
+                                              const currentAllergens = field.value || [];
+                                              if (isSelected) {
+                                                  field.onChange(currentAllergens.filter(a => a !== allergen));
+                                              } else {
+                                                  field.onChange([...currentAllergens, allergen]);
+                                              }
+                                          }}
+                                      >
+                                          {allergen}
+                                      </Button>
+                                  )
+                              })}
+                          </div>
+                      </FormControl>
+                      <FormMessage />
+                  </FormItem>
+              )}
+            />
           </div>
         </ScrollArea>
         <div className="flex justify-end gap-2 pr-4">

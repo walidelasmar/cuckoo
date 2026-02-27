@@ -25,3 +25,20 @@ export const UNIT_CATEGORIES: { [key in Unit]: 'weight' | 'volume' | 'count' } =
     cup: 'volume',
     pc: 'count',
 }
+
+export const ALLERGENS = [
+  'Dairy',
+  'Eggs',
+  'Peanuts',
+  'Tree Nuts',
+  'Fish',
+  'Crustaceans',
+  'Soybeans (Soya)',
+  'Gluten',
+  'Sesame',
+  'Molluscs',
+  'Celery',
+  'Mustard',
+  'Lupin',
+  'Sulphites',
+] as const;

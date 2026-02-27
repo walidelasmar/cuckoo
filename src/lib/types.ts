@@ -20,6 +20,7 @@ export type RawMaterial = {
   quantity: number;
   unit: Unit;
   cost: number;
+  allergens?: string[];
 };
 
 export type Ingredient = {
