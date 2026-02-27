@@ -195,6 +195,22 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                                 </FormItem>
                             )}
                         />
+                        <FormField
+                            control={form.control}
+                            name="portions"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Number of Servings</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="4" {...field} />
+                                    </FormControl>
+                                        <FormDescription>
+                                        How many servings does this recipe make?
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </CardContent>
                 </Card>
                  <Card>
@@ -299,50 +315,32 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                         <CardDescription>Analyze the cost and profitability of your recipe.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="portions"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Number of Servings</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" placeholder="4" {...field} />
-                                        </FormControl>
-                                         <FormDescription>
-                                            How many servings does this recipe make?
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="pricePerServing"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Price per Serving</FormLabel>
-                                        <FormControl>
-                                            <div className="relative">
-                                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                    <span className="text-muted-foreground sm:text-sm">$</span>
-                                                </div>
-                                                <Input
-                                                    type="number"
-                                                    inputMode="decimal"
-                                                    placeholder="0.00"
-                                                    step="0.01"
-                                                    {...field}
-                                                    onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
-                                                    className="pl-7"
-                                                />
+                        <FormField
+                            control={form.control}
+                            name="pricePerServing"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Price per Serving</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <span className="text-muted-foreground sm:text-sm">$</span>
                                             </div>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                                            <Input
+                                                type="number"
+                                                inputMode="decimal"
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                {...field}
+                                                onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
+                                                className="pl-7"
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                              <FormItem>
                                 <FormLabel>Total Cost</FormLabel>
