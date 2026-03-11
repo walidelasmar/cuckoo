@@ -265,7 +265,7 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                                             <FormItem>
                                             <FormLabel className="sr-only">Quantity</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder="Qty" {...field} />
+                                                <Input type="number" placeholder="Qty" min="0" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                             </FormItem>
