@@ -215,7 +215,7 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                                 <FormItem>
                                     <FormLabel>Number of Servings</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="4" {...field} />
+                                        <Input type="number" placeholder="4" min="1" {...field} />
                                     </FormControl>
                                         <FormDescription>
                                         How many servings does this recipe make?
