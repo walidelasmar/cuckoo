@@ -19,8 +19,8 @@ import {
   LogOut,
   UserCircle,
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Button } from './ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Button } from '../ui/button';
 
 export function DashboardSidebar() {
   const pathname = usePathname();
