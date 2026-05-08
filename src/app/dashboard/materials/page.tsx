@@ -1,6 +1,6 @@
 'use client';
 
-import MaterialsClient from './components/client';
+import MaterialsClient from '@/components/materials/client';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
 import { Skeleton } from '@/components/ui/skeleton';
 
