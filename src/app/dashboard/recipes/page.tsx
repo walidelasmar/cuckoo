@@ -26,7 +26,7 @@ import {
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { RecipeForm } from './components/recipe-form';
+import { RecipeForm } from '@/components/recipes/recipe-form';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
 import type { Recipe } from '@/lib/types';
 import type { RecipeFormValues } from '@/hooks/use-recipes';
