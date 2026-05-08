@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useRecipes } from '@/hooks/use-recipes';
 import type { RecipeFormValues } from '@/hooks/use-recipes';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
-import { RecipeForm } from '../../components/recipe-form';
+import { RecipeForm } from '@/components/recipes/recipe-form';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function EditRecipePage() {
