@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Logo } from '@/components/logo';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Logo } from '@/components/layout/logo';
+import { PlaceHolderImages } from '@/lib/images/placeholder-images';
 
 export default function SignupPage() {
   const loginBg = PlaceHolderImages.find(
