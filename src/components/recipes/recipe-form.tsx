@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import * as z from 'zod';
@@ -19,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ALLERGEN_THEMES, UNITS } from '@/lib/constants';
+import { ALLERGEN_ICONS, UNITS } from '@/lib/constants';
 import type { RawMaterial, Recipe } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
@@ -331,23 +332,22 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                     </CardHeader>
                     <CardContent>
                         {detectedAllergens.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-3">
                                 {detectedAllergens.map((allergen) => {
-                                    const theme = ALLERGEN_THEMES[allergen];
+                                    const iconName = ALLERGEN_ICONS[allergen] || allergen.toLowerCase();
                                     return (
                                         <div
                                             key={allergen}
-                                            style={{
-                                                '--allergen-bg-color': `hsl(var(--allergen-${theme}-bg))`,
-                                                '--allergen-fg-color': `hsl(var(--allergen-${theme}-fg))`,
-                                                '--allergen-border-color': `hsl(var(--allergen-${theme}-border))`,
-                                            } as React.CSSProperties}
-                                            className={cn(
-                                                'rounded-full h-8 px-3 border flex items-center justify-center text-sm font-medium',
-                                                'bg-[--allergen-bg-color] text-[--allergen-fg-color] border-[--allergen-border-color]'
-                                            )}
+                                            className="flex flex-col items-center gap-1"
                                         >
-                                            {allergen}
+                                            <Image
+                                                src={`/allergens/${iconName}.png`}
+                                                alt={allergen}
+                                                width={48}
+                                                height={48}
+                                                className="rounded-full"
+                                            />
+                                            <span className="text-xs text-center text-gray-500 w-14 leading-tight">{allergen}</span>
                                         </div>
                                     )
                                 })}
