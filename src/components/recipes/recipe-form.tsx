@@ -163,26 +163,26 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-4">
-        <ScrollArea className="h-[calc(100vh-12rem)]">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <input
+                  {...field}
+                  placeholder="Untitled Recipe"
+                  className="w-full bg-transparent border-0 border-b-2 border-transparent hover:border-gray-200 focus:border-gray-400 focus:outline-none text-3xl font-semibold text-gray-800 placeholder:text-gray-300 transition-colors duration-150 pb-1 px-1"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <ScrollArea className="h-[calc(100vh-16rem)]">
             <div className="space-y-6 p-1 pr-6">
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Recipe Details</CardTitle>
-                    </CardHeader>
                     <CardContent className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Recipe Name</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. Classic Pancakes" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                          <FormField
                             control={form.control}
                             name="description"
