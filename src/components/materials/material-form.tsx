@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useState } from 'react';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +17,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UNITS, ALLERGENS, ALLERGEN_THEMES } from '@/lib/constants';
+import { UNITS, ALLERGENS, ALLERGEN_ICONS } from '@/lib/constants';
 import type { RawMaterial } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
@@ -284,38 +285,41 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
                       <FormControl>
                           <div className="flex flex-wrap gap-2">
                               {ALLERGENS.map((allergen) => {
-                                  const isSelected = field.value?.includes(allergen);
-                                  const theme = ALLERGEN_THEMES[allergen];
-                                  return (
-                                      <Button
-                                          key={allergen}
-                                          type="button"
-                                          variant="outline"
-                                          size="sm"
-                                          style={{
-                                            '--allergen-bg-color': `hsl(var(--allergen-${theme}-bg))`,
-                                            '--allergen-fg-color': `hsl(var(--allergen-${theme}-fg))`,
-                                            '--allergen-border-color': `hsl(var(--allergen-${theme}-border))`,
-                                          } as React.CSSProperties}
-                                          className={cn(
-                                            'rounded-full h-8 px-3 border',
-                                            isSelected 
-                                                ? `bg-[--allergen-bg-color] text-[--allergen-fg-color] border-[--allergen-border-color] hover:bg-[--allergen-bg-color] hover:border-[--allergen-border-color]`
-                                                : 'border-[hsl(var(--muted-foreground))] text-[hsl(var(--allergen-unselected-fg))]'
-                                          )}
-                                          onClick={() => {
-                                              const currentAllergens = field.value || [];
-                                              if (isSelected) {
-                                                  field.onChange(currentAllergens.filter(a => a !== allergen));
-                                              } else {
-                                                  field.onChange([...currentAllergens, allergen]);
-                                              }
-                                          }}
-                                      >
-                                          {allergen}
-                                      </Button>
-                                  )
-                              })}
+                        const isSelected = field.value?.includes(allergen);
+                        const iconName = ALLERGEN_ICONS[allergen] ?? allergen.toLowerCase();
+                        const iconSrc = isSelected
+                          ? `/allergens/${iconName}.png`
+                          : `/allergens/${iconName}_off.png`;
+                        return (
+                          <button
+                            key={allergen}
+                            type="button"
+                            title={allergen}
+                            className={cn(
+                              'rounded-full transition-all duration-150 focus:outline-none',
+                              isSelected
+                                ? 'opacity-100 ring-2 ring-offset-1 ring-gray-400'
+                                : 'opacity-50 hover:opacity-75'
+                            )}
+                            onClick={() => {
+                              const currentAllergens = field.value || [];
+                              if (isSelected) {
+                                field.onChange(currentAllergens.filter((a) => a !== allergen));
+                              } else {
+                                field.onChange([...currentAllergens, allergen]);
+                              }
+                            }}
+                          >
+                            <Image
+                              src={iconSrc}
+                              alt={allergen}
+                              width={48}
+                              height={48}
+                              className="rounded-full"
+                            />
+                          </button>
+                        );
+                      })}
                           </div>
                       </FormControl>
                       <FormMessage />
