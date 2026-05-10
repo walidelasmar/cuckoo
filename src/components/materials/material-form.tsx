@@ -291,33 +291,38 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
                           ? `/allergens/${iconName}.png`
                           : `/allergens/${iconName}_off.png`;
                         return (
-                          <button
+                          <div
                             key={allergen}
-                            type="button"
-                            title={allergen}
-                            className={cn(
-                              'rounded-full transition-all duration-150 focus:outline-none',
-                              isSelected
-                                ? 'opacity-100 ring-2 ring-offset-1 ring-gray-400'
-                                : 'opacity-50 hover:opacity-75'
-                            )}
-                            onClick={() => {
-                              const currentAllergens = field.value || [];
-                              if (isSelected) {
-                                field.onChange(currentAllergens.filter((a) => a !== allergen));
-                              } else {
-                                field.onChange([...currentAllergens, allergen]);
-                              }
-                            }}
+                            className="flex flex-col items-center gap-1"
                           >
-                            <Image
-                              src={iconSrc}
-                              alt={allergen}
-                              width={48}
-                              height={48}
-                              className="rounded-full"
-                            />
-                          </button>
+                            <button
+                              type="button"
+                              title={allergen}
+                              className={cn(
+                                'rounded-full transition-all duration-150 focus:outline-none',
+                                isSelected
+                                  ? 'opacity-100 ring-2 ring-offset-1 ring-gray-400'
+                                  : 'opacity-50 hover:opacity-75'
+                              )}
+                              onClick={() => {
+                                const currentAllergens = field.value || [];
+                                if (isSelected) {
+                                  field.onChange(currentAllergens.filter((a) => a !== allergen));
+                                } else {
+                                  field.onChange([...currentAllergens, allergen]);
+                                }
+                              }}
+                            >
+                              <Image
+                                src={iconSrc}
+                                alt={allergen}
+                                width={48}
+                                height={48}
+                                className="rounded-full"
+                              />
+                            </button>
+                            <span className="text-xs text-center text-gray-500 w-14 leading-tight">{allergen}</span>
+                          </div>
                         );
                       })}
                           </div>
