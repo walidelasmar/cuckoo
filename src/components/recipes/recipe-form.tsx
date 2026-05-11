@@ -48,11 +48,12 @@ export type RecipeFormValues = z.infer<typeof recipeFormSchema>;
 interface RecipeFormProps {
     initialData?: Recipe;
     rawMaterials: RawMaterial[];
+    existingCategories?: string[];
     onSave: (data: RecipeFormValues) => void;
     onCancel: () => void;
 }
 
-export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: RecipeFormProps) {
+export function RecipeForm({ initialData, rawMaterials, existingCategories = [], onSave, onCancel }: RecipeFormProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -172,7 +173,8 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                 <input
                   {...field}
                   placeholder="Untitled Recipe"
-                  className="w-full bg-transparent border-0 border-b-2 border-transparent hover:border-gray-200 focus:border-gray-400 focus:outline-none text-3xl font-semibold text-gray-800 placeholder:text-gray-300 transition-colors duration-150 pb-1 px-1"
+                  autoFocus={!initialData}
+                  className="w-full bg-transparent border-0 border-b-2 border-transparent hover:border-gray-200 focus:border-gray-400 focus:outline-none text-3xl font-semibold text-[#1e3a5f] placeholder:text-gray-300 transition-colors duration-150 pb-1 px-1"
                 />
               </FormControl>
               <FormMessage />
@@ -181,8 +183,7 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
         />
         <ScrollArea className="h-[calc(100vh-16rem)]">
             <div className="space-y-6 p-1 pr-6">
-                <Card>
-                    <CardContent className="space-y-4">
+                <div className="space-y-4">
                          <FormField
                             control={form.control}
                             name="description"
@@ -203,7 +204,19 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                                 <FormItem>
                                 <FormLabel>Category</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g. Breakfast" {...field} value={field.value ?? ''} />
+                                    <>
+                                        <Input
+                                            placeholder="e.g. Breakfast"
+                                            list="category-options"
+                                            {...field}
+                                            value={field.value ?? ''}
+                                        />
+                                        <datalist id="category-options">
+                                            {existingCategories.map((cat) => (
+                                                <option key={cat} value={cat} />
+                                            ))}
+                                        </datalist>
+                                    </>
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -218,15 +231,36 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                                     <FormControl>
                                         <Input type="number" placeholder="4" min="1" {...field} />
                                     </FormControl>
-                                        <FormDescription>
-                                        How many servings does this recipe make?
-                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                    </CardContent>
-                </Card>
+                        <FormField
+                            control={form.control}
+                            name="pricePerServing"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Price per Serving</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <span className="text-muted-foreground sm:text-sm">$</span>
+                                            </div>
+                                            <Input
+                                                type="number"
+                                                placeholder="0.00"
+                                                step="0.01"
+                                                {...field}
+                                                onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
+                                                className="pl-7"
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                </div>
                  <Card>
                     <CardHeader>
                         <CardTitle>Ingredients</CardTitle>
@@ -365,71 +399,41 @@ export function RecipeForm({ initialData, rawMaterials, onSave, onCancel }: Reci
                         <CardDescription>Analyze the cost and profitability of your recipe.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="pricePerServing"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Price per Serving</FormLabel>
-                                        <FormControl>
-                                            <div className="relative">
-                                                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                    <span className="text-muted-foreground sm:text-sm">$</span>
-                                                </div>
-                                                <Input
-                                                    type="number"
-                                                    inputMode="decimal"
-                                                    placeholder="0.00"
-                                                    step="0.01"
-                                                    {...field}
-                                                    onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
-                                                    className="pl-7"
-                                                />
-                                            </div>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormItem>
-                                <FormLabel>Profit Margin</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="text"
-                                        value={`${profitMargin.toFixed(2)}%`}
-                                        disabled
-                                        className="disabled:opacity-100 disabled:cursor-default"
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <FormItem>
-                                <FormLabel>Total Cost</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="text"
-                                        value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalCost)}
-                                        disabled
-                                        className="disabled:opacity-100 disabled:cursor-default"
-                                    />
-                                </FormControl>
-                            </FormItem>
-                            <FormItem>
-                                <FormLabel>Cost per Serving</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="text"
-                                        value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(costPerPortion)}
-                                        disabled
-                                        className="disabled:opacity-100 disabled:cursor-default"
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        </div>
+                        <FormItem>
+                            <FormLabel>Total Cost</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="text"
+                                    value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalCost)}
+                                    disabled
+                                    className="disabled:opacity-100 disabled:cursor-default"
+                                />
+                            </FormControl>
+                        </FormItem>
+                        <FormItem>
+                            <FormLabel>Cost per Serving</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="text"
+                                    value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(costPerPortion)}
+                                    disabled
+                                    className="disabled:opacity-100 disabled:cursor-default"
+                                />
+                            </FormControl>
+                        </FormItem>
+                        <FormItem>
+                            <FormLabel>Profit Margin</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="text"
+                                    value={`${profitMargin.toFixed(2)}%`}
+                                    disabled
+                                    className="disabled:opacity-100 disabled:cursor-default"
+                                />
+                            </FormControl>
+                        </FormItem>
                         <div className="pt-4">
-                            <FormLabel>Cost Breakdown per Serving</FormLabel>
+                            <FormLabel>Cost Breakdown</FormLabel>
                             <CostBreakdownChart data={chartDataPerServing} />
                         </div>
                     </CardContent>
