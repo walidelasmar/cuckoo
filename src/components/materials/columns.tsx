@@ -90,7 +90,7 @@ const ActionsCell = ({ row, table }: { row: any; table: any }) => {
             <Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
                 <SheetContent className="sm:max-w-2xl">
                     <SheetHeader>
-                        <SheetTitle>Edit Raw Material</SheetTitle>
+                        <SheetTitle className="text-[#6B7280]">Edit Raw Material</SheetTitle>
                     </SheetHeader>
                     <MaterialForm 
                         initialData={material}
