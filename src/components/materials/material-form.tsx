@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,12 @@ interface MaterialFormProps {
 export function MaterialForm({ initialData, onClose, providers = [], onSave }: MaterialFormProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const shortNameRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        if (!initialData && shortNameRef.current) {
+            shortNameRef.current.focus();
+        }
+    }, []);
 
     const form = useForm<z.input<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -112,8 +118,8 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-4">
-        <ScrollArea className="h-[calc(100vh-12rem)]">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 pt-4">
+        <ScrollArea className="h-[calc(100vh-16rem)]">
           <div className="space-y-4 p-1 pr-6">
             
             <FormField
@@ -121,9 +127,13 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
               name="shortName"
               render={({ field }) => (
                   <FormItem>
-                  <FormLabel>Short Name (Unique)</FormLabel>
                   <FormControl>
-                      <Input placeholder="APF" {...field} />
+                      <input
+                          {...field}
+                          ref={shortNameRef}
+                          placeholder="Ingredient Name"
+                          className="w-full bg-transparent border-0 border-b-2 border-transparent hover:border-gray-200 focus:border-gray-400 focus:outline-none text-3xl font-semibold text-[#1e3a5f] placeholder:text-gray-300 transition-colors duration-150 pb-1 px-1"
+                      />
                   </FormControl>
                   <FormMessage />
                   </FormItem>
