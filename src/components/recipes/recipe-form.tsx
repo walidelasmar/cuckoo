@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import * as z from 'zod';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -56,6 +56,12 @@ interface RecipeFormProps {
 export function RecipeForm({ initialData, rawMaterials, existingCategories = [], onSave, onCancel }: RecipeFormProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const titleRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        if (!initialData && titleRef.current) {
+            titleRef.current.focus();
+        }
+    }, []);
 
     const form = useForm<RecipeFormValues>({
         resolver: zodResolver(recipeFormSchema),
@@ -163,7 +169,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 pt-4">
         <FormField
           control={form.control}
           name="name"
@@ -172,8 +178,8 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
               <FormControl>
                 <input
                   {...field}
+                  ref={titleRef}
                   placeholder="Untitled Recipe"
-                  autoFocus={!initialData}
                   className="w-full bg-transparent border-0 border-b-2 border-transparent hover:border-gray-200 focus:border-gray-400 focus:outline-none text-3xl font-semibold text-[#1e3a5f] placeholder:text-gray-300 transition-colors duration-150 pb-1 px-1"
                 />
               </FormControl>
