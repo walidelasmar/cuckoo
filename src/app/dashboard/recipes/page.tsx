@@ -136,6 +136,7 @@ export default function RecipesPage() {
                         initialData={recipeToEdit}
                         onSave={handleUpdateRecipe} 
                         rawMaterials={materials}
+                        existingCategories={[...new Set(recipes.map(r => r.category).filter(Boolean) as string[])]}
                         onCancel={() => setIsEditSheetOpen(false)}
                     />
                 )}
@@ -164,6 +165,7 @@ export default function RecipesPage() {
                 <RecipeForm
                     onSave={handleAddNewRecipe}
                     rawMaterials={materials}
+                    existingCategories={[...new Set(recipes.map(r => r.category).filter(Boolean) as string[])]}
                     onCancel={() => setIsNewSheetOpen(false)}
                 />
             </SheetContent>
