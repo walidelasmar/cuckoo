@@ -129,7 +129,7 @@ export default function RecipesPage() {
         <Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
             <SheetContent className="sm:max-w-2xl">
                 <SheetHeader>
-                    <SheetTitle>Edit Recipe</SheetTitle>
+                    <SheetTitle className="text-[#6B7280]">Edit Recipe</SheetTitle>
                 </SheetHeader>
                 {recipeToEdit && (
                     <RecipeForm 
