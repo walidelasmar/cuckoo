@@ -25,7 +25,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { calculateRecipeCost, cn } from '@/lib/utils';
+import { calculateRecipeCost } from '@/lib/utils';
 import { CostBreakdownChart } from './cost-breakdown-chart';
 
 const recipeFormSchema = z.object({
