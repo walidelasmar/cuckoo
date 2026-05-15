@@ -159,11 +159,11 @@ export default function RecipesPage() {
                 )}
             </SheetContent>
         </Sheet>
+      <h1 className="font-headline text-3xl font-bold tracking-tight">
+        Recipes
+      </h1>
       <div className="flex items-center gap-3">
-        <h1 className="font-headline text-3xl font-bold tracking-tight flex-1">
-          Recipes
-        </h1>
-        <div className="relative max-w-sm flex-1">
+        <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search recipes..."
