@@ -1,6 +1,7 @@
 'use client';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { DataTable } from './data-table';
 import { columns } from './columns';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -18,6 +19,7 @@ interface MaterialsClientProps {
 
 export default function MaterialsClient({ data, providers, addMaterial, updateMaterial, deleteMaterial }: MaterialsClientProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [globalFilter, setGlobalFilter] = useState('');
   
   const handleAdd = (formData: Omit<RawMaterial, 'id'>) => {
     addMaterial(formData);
@@ -25,7 +27,16 @@ export default function MaterialsClient({ data, providers, addMaterial, updateMa
 
   return (
     <>
-      <div className="flex justify-end">
+      <div className="flex items-center gap-3 py-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search all fields..."
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="pl-8"
+          />
+        </div>
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
                 <Button size="sm" className="gap-1">
@@ -48,6 +59,7 @@ export default function MaterialsClient({ data, providers, addMaterial, updateMa
       <DataTable 
         columns={columns} 
         data={data} 
+        globalFilter={globalFilter}
         meta={{
             providers,
             updateMaterial,
