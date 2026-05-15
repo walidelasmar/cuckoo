@@ -209,28 +209,49 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                         <FormField
                             control={form.control}
                             name="category"
-                            render={({ field }) => (
+                            render={({ field }) => {
+                                const isCustom = !!field.value && !existingCategories.includes(field.value);
+                                const showCustomInput = isCustom || field.value === '__custom__';
+                                return (
                                 <FormItem>
                                 <FormLabel>Category</FormLabel>
                                 <FormControl>
-                                    <>
-                                        <Input
-                                            tabIndex={3}
-                                            placeholder="e.g. Breakfast"
-                                            list="category-options"
-                                            {...field}
-                                            value={field.value ?? ''}
-                                        />
-                                        <datalist id="category-options">
-                                            {existingCategories.map((cat) => (
-                                                <option key={cat} value={cat} />
-                                            ))}
-                                        </datalist>
-                                    </>
+                                    <div className="space-y-2">
+                                        <Select
+                                            value={showCustomInput ? '__custom__' : (field.value ?? '')}
+                                            onValueChange={(val) => {
+                                                if (val === '__custom__') {
+                                                    field.onChange('');
+                                                } else {
+                                                    field.onChange(val);
+                                                }
+                                            }}
+                                        >
+                                            <SelectTrigger tabIndex={3}>
+                                                <SelectValue placeholder="Select or type a category" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {existingCategories.map((cat) => (
+                                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                                ))}
+                                                <SelectItem value="__custom__">+ New category…</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {showCustomInput && (
+                                            <Input
+                                                tabIndex={3}
+                                                placeholder="e.g. Breakfast"
+                                                value={field.value === '__custom__' ? '' : (field.value ?? '')}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                autoFocus
+                                            />
+                                        )}
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
-                            )}
+                                );
+                            }}
                         />
                         <FormField
                             control={form.control}
