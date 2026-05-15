@@ -28,7 +28,7 @@ export default function MaterialsClient({ data, providers, addMaterial, updateMa
   return (
     <>
       <div className="flex items-center gap-3 py-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search all fields..."
