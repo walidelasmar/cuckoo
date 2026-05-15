@@ -3,6 +3,7 @@
 import * as React from "react"
 import {
   ColumnDef,
+  FilterFn,
   SortingState,
   TableMeta,
   flexRender,
@@ -22,6 +23,19 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+
+// Global filter function that searches all string/number fields
+const globalFilterFn: FilterFn<any> = (row, columnId, filterValue: string) => {
+  const search = filterValue.toLowerCase().trim();
+  if (!search) return true;
+  const values = Object.values(row.original as Record<string, unknown>);
+  return values.some((val) => {
+    if (val === null || val === undefined) return false;
+    if (Array.isArray(val)) return val.join(' ').toLowerCase().includes(search);
+    return String(val).toLowerCase().includes(search);
+  });
+};
+globalFilterFn.autoRemove = (val: any) => !val;
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -47,6 +61,7 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    globalFilterFn,
     state: {
       sorting,
       globalFilter,
