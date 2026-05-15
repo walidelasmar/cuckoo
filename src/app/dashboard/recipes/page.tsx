@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { calculateRecipeCost } from '@/lib/utils';
-import { Edit, PlusCircle, Trash2 } from 'lucide-react';
+import { Edit, LayoutGrid, List, PlusCircle, Search, Trash2 } from 'lucide-react';
 import { useRecipes } from '@/hooks/use-recipes';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -23,7 +23,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { RecipeForm } from '@/components/recipes/recipe-form';
@@ -32,15 +32,16 @@ import type { Recipe } from '@/lib/types';
 import type { RecipeFormValues } from '@/hooks/use-recipes';
 
 export default function RecipesPage() {
-  const { recipes, isLoading, deleteRecipe, updateRecipe, addRecipe } = useRecipes();
+  const { recipes, isLoading, addRecipe, updateRecipe, deleteRecipe } = useRecipes();
   const { materials, isLoading: isLoadingMaterials } = useRawMaterials();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
   const { toast } = useToast();
-
-  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [isNewSheetOpen, setIsNewSheetOpen] = useState(false);
+  const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleEdit = (recipe: Recipe) => {
     setRecipeToEdit(recipe);
@@ -63,7 +64,7 @@ export default function RecipesPage() {
     
     setIsDeleting(true);
     try {
-        const recipeName = recipes.find(r => r.id === recipeToDelete)?.name;
+      const recipeName = recipes.find(r => r.id === recipeToDelete)?.name || 'Recipe';
         deleteRecipe(recipeToDelete);
         toast({
             title: "Recipe Deleted",
@@ -81,6 +82,25 @@ export default function RecipesPage() {
     }
   }
 
+  const filteredRecipes = useMemo(() => {
+    if (!searchQuery.trim()) return recipes;
+    const q = searchQuery.toLowerCase();
+    return recipes.filter(recipe => {
+      const cost = calculateRecipeCost(recipe);
+      const profitMargin = recipe.pricePerServing && recipe.pricePerServing > 0
+        ? ((recipe.pricePerServing - cost.costPerPortion) / recipe.pricePerServing) * 100
+        : 0;
+      return (
+        recipe.name.toLowerCase().includes(q) ||
+        recipe.category.toLowerCase().includes(q) ||
+        recipe.description?.toLowerCase().includes(q) ||
+        cost.costPerPortion.toFixed(2).includes(q) ||
+        (recipe.pricePerServing?.toFixed(2) || '').includes(q) ||
+        profitMargin.toFixed(1).includes(q)
+      );
+    });
+  }, [recipes, searchQuery]);
+
   if (isLoading || isLoadingMaterials) {
     return (
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -89,9 +109,6 @@ export default function RecipesPage() {
                     <h1 className="font-headline text-3xl font-bold tracking-tight">
                         Recipes
                     </h1>
-                     <p className="text-muted-foreground">
-                        Create, manage, and calculate costs for your menu items.
-                    </p>
                 </div>
                 <Skeleton className="h-9 w-32" />
             </div>
@@ -105,7 +122,7 @@ export default function RecipesPage() {
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-       <AlertDialog open={!!recipeToDelete} onOpenChange={(open) => !open && setRecipeToDelete(null)}>
+        <AlertDialog open={!!recipeToDelete} onOpenChange={(open) => !open && setRecipeToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -142,14 +159,36 @@ export default function RecipesPage() {
                 )}
             </SheetContent>
         </Sheet>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-headline text-3xl font-bold tracking-tight">
-            Recipes
-          </h1>
-          <p className="text-muted-foreground">
-            Create, manage, and calculate costs for your menu items.
-          </p>
+      <div className="flex items-center gap-3">
+        <h1 className="font-headline text-3xl font-bold tracking-tight flex-1">
+          Recipes
+        </h1>
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search recipes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+        <div className="flex items-center border rounded-md">
+          <Button
+            variant={viewMode === 'card' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="rounded-r-none"
+            onClick={() => setViewMode('card')}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="rounded-l-none"
+            onClick={() => setViewMode('list')}
+          >
+            <List className="h-4 w-4" />
+          </Button>
         </div>
         <Sheet open={isNewSheetOpen} onOpenChange={setIsNewSheetOpen}>
             <SheetTrigger asChild>
@@ -172,66 +211,113 @@ export default function RecipesPage() {
         </Sheet>
       </div>
 
-      <div className="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {recipes.map((recipe) => {
-          const cost = calculateRecipeCost(recipe);
-          return (
-            <Card key={recipe.id} className="flex flex-col">
-              <CardHeader>
-                <CardTitle className="font-headline">{recipe.name}</CardTitle>
-                <CardDescription>{recipe.category}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col flex-grow">
-                <p className="text-sm text-muted-foreground line-clamp-2 flex-grow">
-                  {recipe.description}
-                </p>
-                <div className="flex justify-between items-center pt-4 text-sm">
-                  <div className="flex flex-col">
-                    <span className="font-semibold">
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                      }).format(cost.totalCost)}
-                    </span>
-                    <span className="text-muted-foreground">Total Cost</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex flex-col text-right">
-                      <span className="font-semibold">
+      {viewMode === 'card' ? (
+        <div className="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {filteredRecipes.map((recipe) => {
+            const cost = calculateRecipeCost(recipe);
+            const profitMargin = recipe.pricePerServing && recipe.pricePerServing > 0
+              ? ((recipe.pricePerServing - cost.costPerPortion) / recipe.pricePerServing) * 100
+              : 0;
+            return (
+              <Card key={recipe.id} className="flex flex-col">
+                <CardHeader>
+                  <CardTitle className="font-headline">{recipe.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col flex-grow">
+                  <div className="flex justify-between items-center pt-2 text-sm flex-grow">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-lg">
                         {new Intl.NumberFormat('en-US', {
                           style: 'currency',
                           currency: 'USD',
-                        }).format(cost.costPerPortion)}
+                        }).format(recipe.pricePerServing ?? 0)}
                       </span>
-                      <span className="text-muted-foreground">
-                        Cost / Portion ({recipe.portions})
+                      <span className="text-muted-foreground">Price / Portion</span>
+                    </div>
+                    <div className="flex flex-col text-right">
+                      <span className="font-semibold text-lg">
+                        {profitMargin.toFixed(1)}%
                       </span>
+                      <span className="text-muted-foreground">Profit Margin</span>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex-col items-start">
-                 <div className="flex-grow w-full"></div>
-                <div className="flex items-center space-x-1 ml-auto">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(recipe)}>
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={() => setRecipeToDelete(recipe.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          );
-        })}
-      </div>
+                </CardContent>
+                <CardFooter className="flex-col items-start">
+                   <div className="flex-grow w-full"></div>
+                  <div className="flex items-center space-x-1 ml-auto">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(recipe)}>
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => setRecipeToDelete(recipe.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="text-left p-3 font-medium">Name</th>
+                <th className="text-left p-3 font-medium">Category</th>
+                <th className="text-right p-3 font-medium">Cost / Portion</th>
+                <th className="text-right p-3 font-medium">Price / Portion</th>
+                <th className="text-right p-3 font-medium">Profit Margin</th>
+                <th className="text-right p-3 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRecipes.map((recipe) => {
+                const cost = calculateRecipeCost(recipe);
+                const profitMargin = recipe.pricePerServing && recipe.pricePerServing > 0
+                  ? ((recipe.pricePerServing - cost.costPerPortion) / recipe.pricePerServing) * 100
+                  : 0;
+                return (
+                  <tr key={recipe.id} className="border-b hover:bg-muted/30 transition-colors">
+                    <td className="p-3 font-medium">{recipe.name}</td>
+                    <td className="p-3 text-muted-foreground">{recipe.category}</td>
+                    <td className="p-3 text-right">
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cost.costPerPortion)}
+                    </td>
+                    <td className="p-3 text-right">
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(recipe.pricePerServing ?? 0)}
+                    </td>
+                    <td className="p-3 text-right">{profitMargin.toFixed(1)}%</td>
+                    <td className="p-3 text-right">
+                      <div className="flex items-center justify-end space-x-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(recipe)}>
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => setRecipeToDelete(recipe.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </main>
   );
 }
