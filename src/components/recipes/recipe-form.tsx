@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,7 +24,7 @@ import type { RawMaterial, Recipe } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { calculateRecipeCost, cn } from '@/lib/utils';
 import { CostBreakdownChart } from './cost-breakdown-chart';
 
@@ -54,9 +53,9 @@ interface RecipeFormProps {
 }
 
 export function RecipeForm({ initialData, rawMaterials, existingCategories = [], onSave, onCancel }: RecipeFormProps) {
-    const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const titleRef = useRef<HTMLInputElement>(null);
+    const { toast } = useToast();
     useEffect(() => {
         if (!initialData && titleRef.current) {
             titleRef.current.focus();
@@ -89,18 +88,22 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
         name: "ingredients"
     });
 
-    const watchedIngredients = form.watch('ingredients');
-    const watchedPortions = form.watch('portions');
-    const watchedPricePerServing = form.watch('pricePerServing');
-
-    const rawMaterialsById = React.useMemo(() => new Map(rawMaterials.map(m => [m.id, m])), [rawMaterials]);
+    const watchedIngredients = form.watch("ingredients");
+    const watchedPortions = form.watch("portions");
+    const watchedPricePerServing = form.watch("pricePerServing");
     
+    const rawMaterialsById = React.useMemo(() => {
+        const map = new Map<string, RawMaterial>();
+        rawMaterials.forEach(m => map.set(m.id, m));
+        return map;
+    }, [rawMaterials]);
+
     const { totalCost, costPerPortion, chartData } = React.useMemo(() => {
         const hydratedIngredients = watchedIngredients.map(ing => ({
             ...ing,
             id: ing.id || '',
             rawMaterial: rawMaterialsById.get(ing.rawMaterialId)!
-        })).filter(i => i.rawMaterial);
+        })).filter(ing => ing.rawMaterial);
     
         const recipeForCosting: Recipe = {
             id: initialData?.id || '',
@@ -128,12 +131,11 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
         return { totalCost, costPerPortion, chartData };
     }, [watchedIngredients, watchedPortions, rawMaterialsById, initialData?.id, form]);
 
-    const profitMargin = (watchedPricePerServing && watchedPricePerServing > 0 && costPerPortion > 0)
+    const profitMargin = watchedPricePerServing && watchedPricePerServing > 0
         ? ((watchedPricePerServing - costPerPortion) / watchedPricePerServing) * 100
         : 0;
 
-    const portionsForChart = watchedPortions > 0 ? watchedPortions : 1;
-    const chartDataPerServing = chartData.map(d => ({ ...d, cost: d.cost / portionsForChart }));
+    const chartDataPerServing = chartData.map(d => ({ ...d, cost: d.cost / (watchedPortions || 1) }));
 
     const detectedAllergens = React.useMemo(() => {
         const allergenSet = new Set<string>();
@@ -180,6 +182,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                   {...field}
                   ref={titleRef}
                   placeholder="Untitled Recipe"
+                  tabIndex={1}
                   className="w-full bg-transparent border-0 border-b-2 border-transparent hover:border-gray-200 focus:border-gray-400 focus:outline-none text-3xl font-semibold text-[#1e3a5f] placeholder:text-gray-300 transition-colors duration-150 pb-1 px-1"
                 />
               </FormControl>
@@ -197,7 +200,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                 <FormItem>
                                 <FormLabel>Description</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="A short description of the recipe..." {...field} value={field.value ?? ''}/>
+                                    <Textarea tabIndex={2} placeholder="A short description of the recipe..." {...field} value={field.value ?? ''}/>
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -212,6 +215,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                 <FormControl>
                                     <>
                                         <Input
+                                            tabIndex={3}
                                             placeholder="e.g. Breakfast"
                                             list="category-options"
                                             {...field}
@@ -235,7 +239,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                 <FormItem>
                                     <FormLabel>Number of Servings</FormLabel>
                                     <FormControl>
-                                        <Input type="number" placeholder="4" min="1" {...field} />
+                                        <Input tabIndex={4} type="number" placeholder="4" min="1" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -253,6 +257,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                                 <span className="text-muted-foreground sm:text-sm">$</span>
                                             </div>
                                             <Input
+                                                tabIndex={5}
                                                 type="number"
                                                 placeholder="0.00"
                                                 step="0.01"
@@ -283,13 +288,13 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                             <FormLabel className="sr-only">Ingredient</FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger tabIndex={6 + index * 3}>
                                                     <SelectValue placeholder="Select an ingredient" />
                                                 </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
                                                     {rawMaterials.map(material => (
-                                                        <SelectItem key={material.id} value={material.id}>{material.shortName} ({material.name})</SelectItem>
+                                                        <SelectItem key={material.id} value={material.id}>{material.shortName}</SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
@@ -306,7 +311,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                             <FormItem>
                                             <FormLabel className="sr-only">Quantity</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder="Qty" min="0" {...field} />
+                                                <Input tabIndex={7 + index * 3} type="number" placeholder="Qty" min="0" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                             </FormItem>
@@ -322,7 +327,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                             <FormLabel className="sr-only">Unit</FormLabel>
                                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                     <FormControl>
-                                                    <SelectTrigger>
+                                                    <SelectTrigger tabIndex={8 + index * 3}>
                                                         <SelectValue placeholder="Unit" />
                                                     </SelectTrigger>
                                                     </FormControl>
@@ -366,15 +371,12 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                 <Card>
                     <CardHeader>
                         <CardTitle>Allergens</CardTitle>
-                        <CardDescription>
-                            Allergens present in this recipe based on its ingredients.
-                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {detectedAllergens.length > 0 ? (
                             <div className="flex flex-wrap gap-3">
                                 {detectedAllergens.map((allergen) => {
-                                    const iconName = ALLERGEN_ICONS[allergen] || allergen.toLowerCase();
+                                    const iconName = ALLERGEN_ICONS[allergen] || allergen.toLowerCase().replace(/\s+/g, '-');
                                     return (
                                         <div
                                             key={allergen}
@@ -402,42 +404,28 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                  <Card>
                     <CardHeader>
                         <CardTitle>Economics</CardTitle>
-                        <CardDescription>Analyze the cost and profitability of your recipe.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <FormItem>
-                            <FormLabel>Total Cost</FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="text"
-                                    value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalCost)}
-                                    disabled
-                                    className="disabled:opacity-100 disabled:cursor-default"
-                                />
-                            </FormControl>
-                        </FormItem>
-                        <FormItem>
-                            <FormLabel>Cost per Serving</FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="text"
-                                    value={new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(costPerPortion)}
-                                    disabled
-                                    className="disabled:opacity-100 disabled:cursor-default"
-                                />
-                            </FormControl>
-                        </FormItem>
-                        <FormItem>
-                            <FormLabel>Profit Margin</FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="text"
-                                    value={`${profitMargin.toFixed(2)}%`}
-                                    disabled
-                                    className="disabled:opacity-100 disabled:cursor-default"
-                                />
-                            </FormControl>
-                        </FormItem>
+                        <div className="flex justify-between items-start pt-2 text-sm">
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-lg">
+                                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(totalCost)}
+                                </span>
+                                <span className="text-muted-foreground">Total Cost</span>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <span className="font-semibold text-lg">
+                                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(costPerPortion)}
+                                </span>
+                                <span className="text-muted-foreground">Cost / Serving</span>
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className="font-semibold text-lg">
+                                    {profitMargin.toFixed(1)}%
+                                </span>
+                                <span className="text-muted-foreground">Profit Margin</span>
+                            </div>
+                        </div>
                         <div className="pt-4">
                             <FormLabel>Cost Breakdown</FormLabel>
                             <CostBreakdownChart data={chartDataPerServing} />
