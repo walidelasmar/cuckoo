@@ -221,7 +221,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                             value={showCustomInput ? '__custom__' : (field.value ?? '')}
                                             onValueChange={(val) => {
                                                 if (val === '__custom__') {
-                                                    field.onChange('');
+                                                    field.onChange('__custom__');
                                                 } else {
                                                     field.onChange(val);
                                                 }
