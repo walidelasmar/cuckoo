@@ -6,6 +6,7 @@ import type { RecipeFormValues } from '@/hooks/use-recipes';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
 import { RecipeForm } from '@/components/recipes/recipe-form';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getList, RECIPE_CATEGORIES_KEY } from '@/lib/lists';
 
 export default function EditRecipePage() {
   const router = useRouter();
@@ -64,6 +65,7 @@ export default function EditRecipePage() {
         onSave={handleSave} 
         rawMaterials={materials}
         onCancel={() => router.push('/dashboard/recipes')}
+        existingCategories={getList(RECIPE_CATEGORIES_KEY)}
       />
     </main>
   );
