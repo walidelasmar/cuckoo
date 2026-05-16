@@ -30,6 +30,7 @@ import { RecipeForm } from '@/components/recipes/recipe-form';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
 import type { Recipe } from '@/lib/types';
 import type { RecipeFormValues } from '@/hooks/use-recipes';
+import { getList, RECIPE_CATEGORIES_KEY } from '@/lib/lists';
 
 export default function RecipesPage() {
   const { recipes, isLoading, addRecipe, updateRecipe, deleteRecipe } = useRecipes();
@@ -153,7 +154,7 @@ export default function RecipesPage() {
                         initialData={recipeToEdit}
                         onSave={handleUpdateRecipe} 
                         rawMaterials={materials}
-                        existingCategories={[...new Set(recipes.map(r => r.category).filter(Boolean) as string[])]}
+                        existingCategories={getList(RECIPE_CATEGORIES_KEY)}}
                         onCancel={() => setIsEditSheetOpen(false)}
                     />
                 )}
@@ -204,7 +205,7 @@ export default function RecipesPage() {
                 <RecipeForm
                     onSave={handleAddNewRecipe}
                     rawMaterials={materials}
-                    existingCategories={[...new Set(recipes.map(r => r.category).filter(Boolean) as string[])]}
+                    existingCategories={getList(RECIPE_CATEGORIES_KEY)}}
                     onCancel={() => setIsNewSheetOpen(false)}
                 />
             </SheetContent>
