@@ -12,12 +12,13 @@ import type { RawMaterial } from '@/lib/types';
 interface MaterialsClientProps {
   data: RawMaterial[];
   providers: string[];
+  categories: string[];
   addMaterial: (data: Omit<RawMaterial, 'id'>) => void;
   updateMaterial: (id: string, data: Partial<Omit<RawMaterial, 'id'>>) => void;
   deleteMaterial: (id: string) => void;
 }
 
-export default function MaterialsClient({ data, providers, addMaterial, updateMaterial, deleteMaterial }: MaterialsClientProps) {
+export default function MaterialsClient({ { data, providers, categories, addMaterial, updateMaterial, deleteMaterial }: MaterialsClientProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [globalFilter, setGlobalFilter] = useState('');
   
@@ -52,6 +53,7 @@ export default function MaterialsClient({ data, providers, addMaterial, updateMa
                     onSave={handleAdd} 
                     onClose={() => setIsSheetOpen(false)} 
                     providers={providers} 
+          categories={categories}
                 />
             </SheetContent>
         </Sheet>
@@ -62,6 +64,7 @@ export default function MaterialsClient({ data, providers, addMaterial, updateMa
         globalFilter={globalFilter}
         meta={{
             providers,
+            categories,
             updateMaterial,
             deleteMaterial,
         }}
