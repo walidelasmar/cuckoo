@@ -142,40 +142,98 @@ export function MaterialForm({ initialData, onClose, providers = [], categories 
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                control={form.control}
-                name="provider"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Provider</FormLabel>
-                    <FormControl>
-                        <>
-                         <Input placeholder="Grain Co." {...field} list="provider-list" value={field.value ?? ''} />
-                         <datalist id="provider-list">
-                            {providers.map(p => <option key={p} value={p} />)}
-                         </datalist>
-                        </>
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Category</FormLabel>
+                                <FormField
+                  control={form.control}
+                  name="provider"
+                  render={({ field }) => {
+                    const isCustomProvider = !!field.value && !providers.includes(field.value);
+                    const showProviderInput = isCustomProvider || field.value === '__custom_provider__';
+                    return (
+                      <FormItem>
+                        <FormLabel>Provider</FormLabel>
                         <FormControl>
-                            <Input placeholder="Flour" {...field} list="category-list" value={field.value ?? ''} />
-                            <datalist id="category-list">
-                              {categories.map(c => <option key={c} value={c} />)}
-                            </datalist>
+                          <div className="space-y-2">
+                            <Select
+                              value={showProviderInput ? '__custom_provider__' : (field.value ?? '')}
+                              onValueChange={(val) => {
+                                if (val === '__custom_provider__') {
+                                  field.onChange('__custom_provider__');
+                                } else {
+                                  field.onChange(val);
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select or type a provider" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {providers.map((prov) => (
+                                  <SelectItem key={prov} value={prov}>{prov}</SelectItem>
+                                ))}
+                                <SelectItem value="__custom_provider__">+ New provider…</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {showProviderInput && (
+                              <Input
+                                placeholder="e.g. Grain Co."
+                                value={field.value === '__custom_provider__' ? '' : (field.value ?? '')}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                autoFocus
+                              />
+                            )}
+                          </div>
                         </FormControl>
                         <FormMessage />
-                        </FormItem>
-                    )}
-                    />
+                      </FormItem>
+                    );
+                  }}
+                />
+                                  <FormField
+                   control={form.control}
+                   name="category"
+                   render={({ field }) => {
+                     const isCustomCategory = !!field.value && !categories.includes(field.value);
+                     const showCategoryInput = isCustomCategory || field.value === '__custom_category__';
+                     return (
+                       <FormItem>
+                         <FormLabel>Category</FormLabel>
+                         <FormControl>
+                           <div className="space-y-2">
+                             <Select
+                               value={showCategoryInput ? '__custom_category__' : (field.value ?? '')}
+                               onValueChange={(val) => {
+                                 if (val === '__custom_category__') {
+                                   field.onChange('__custom_category__');
+                                 } else {
+                                   field.onChange(val);
+                                 }
+                               }}
+                             >
+                               <SelectTrigger>
+                                 <SelectValue placeholder="Select or type a category" />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 {categories.map((cat) => (
+                                   <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                 ))}
+                                 <SelectItem value="__custom_category__">+ New category…</SelectItem>
+                               </SelectContent>
+                             </Select>
+                             {showCategoryInput && (
+                               <Input
+                                 placeholder="e.g. Grains"
+                                 value={field.value === '__custom_category__' ? '' : (field.value ?? '')}
+                                 onChange={(e) => field.onChange(e.target.value)}
+                                 autoFocus
+                               />
+                             )}
+                           </div>
+                         </FormControl>
+                         <FormMessage />
+                       </FormItem>
+                     );
+                   }}
+                 />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
