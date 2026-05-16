@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Recipe, RawMaterial, Ingredient } from '@/lib/types';
 import { recipes as initialRecipes, rawMaterials as initialRawMaterials } from '@/lib/data';
+import { syncRecipeLists } from '@/lib/lists';
 
 const RECIPES_STORAGE_KEY = 'recipes';
 const MATERIALS_STORAGE_KEY = 'rawMaterials';
@@ -61,10 +62,12 @@ export function useRecipes() {
       }));
       
       setRecipes(hydratedRecipes);
+      syncRecipeLists(hydratedRecipes);
 
     } catch (error) {
       console.error("Failed to access localStorage for recipes", error);
       setRecipes(initialRecipes);
+      syncRecipeLists(initialRecipes);
     } finally {
         setIsLoading(false);
     }
@@ -99,6 +102,7 @@ export function useRecipes() {
     const updatedRecipes = [newRecipe, ...recipes];
     setRecipes(updatedRecipes);
     updateLocalStorage(updatedRecipes);
+    syncRecipeLists(updatedRecipes);
     return newRecipe;
   };
 
@@ -123,12 +127,14 @@ export function useRecipes() {
     });
     setRecipes(updatedRecipes);
     updateLocalStorage(updatedRecipes);
+    syncRecipeLists(updatedRecipes);
   };
 
   const deleteRecipe = (id: string) => {
     const updatedRecipes = recipes.filter((recipe) => recipe.id !== id);
     setRecipes(updatedRecipes);
     updateLocalStorage(updatedRecipes);
+    syncRecipeLists(updatedRecipes);
   };
   
   return { recipes, isLoading, addRecipe, updateRecipe, deleteRecipe };
