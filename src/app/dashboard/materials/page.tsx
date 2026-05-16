@@ -3,13 +3,12 @@
 import MaterialsClient from '@/components/materials/client';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getList, MATERIAL_PROVIDERS_KEY, MATERIAL_CATEGORIES_KEY } from '@/lib/lists';
 
 export default function RawMaterialsPage() {
   const { materials, isLoading, addMaterial, updateMaterial, deleteMaterial } = useRawMaterials();
 
-  const providers = Array.from(
-    new Set(materials.map((m) => m.provider).filter((p): p is string => !!p))
-  ).sort();
+    const providers = getList(MATERIAL_PROVIDERS_KEY);
 
   if (isLoading) {
     return (
@@ -48,6 +47,7 @@ export default function RawMaterialsPage() {
       <MaterialsClient 
         data={materials} 
         providers={providers}
+        categories={getList(MATERIAL_CATEGORIES_KEY)}
         addMaterial={addMaterial}
         updateMaterial={updateMaterial}
         deleteMaterial={deleteMaterial}
