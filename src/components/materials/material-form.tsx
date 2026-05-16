@@ -41,10 +41,11 @@ interface MaterialFormProps {
     initialData?: Omit<RawMaterial, 'id'>;
     onClose: () => void;
     providers?: string[];
+  categories?: string[];
     onSave: (data: MaterialFormValues) => void;
 }
 
-export function MaterialForm({ initialData, onClose, providers = [], onSave }: MaterialFormProps) {
+export function MaterialForm({ initialData, onClose, providers = [], categories = [], onSave }: MaterialFormProps) {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const shortNameRef = useRef<HTMLInputElement>(null);
@@ -166,7 +167,10 @@ export function MaterialForm({ initialData, onClose, providers = [], onSave }: M
                         <FormItem>
                         <FormLabel>Category</FormLabel>
                         <FormControl>
-                            <Input placeholder="Flour" {...field} value={field.value ?? ''}/>
+                            <Input placeholder="Flour" {...field} list="category-list" value={field.value ?? ''} />
+                            <datalist id="category-list">
+                              {categories.map(c => <option key={c} value={c} />)}
+                            </datalist>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
