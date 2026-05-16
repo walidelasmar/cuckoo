@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { RawMaterial } from '@/lib/types';
 import { rawMaterials as initialRawMaterials } from '@/lib/data';
+import { syncMaterialLists } from '@/lib/lists';
 
 const LOCAL_STORAGE_KEY = 'rawMaterials';
 
@@ -14,48 +15,49 @@ export function useRawMaterials() {
     try {
       const storedItems = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (storedItems) {
-        setMaterials(JSON.parse(storedItems));
+        const parsed: RawMaterial[] = JSON.parse(storedItems);
+        setMaterials(parsed);
+        syncMaterialLists(parsed);
       } else {
-        // Seed with initial data if localStorage is empty
         setMaterials(initialRawMaterials);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialRawMaterials));
+        syncMaterialLists(initialRawMaterials);
       }
-    } catch (error) {
-      console.error("Failed to access localStorage", error);
-      // Fallback to initial data if localStorage is not available
+    } catch {
       setMaterials(initialRawMaterials);
-    } finally {
-        setIsLoading(false);
     }
+    setIsLoading(false);
   }, []);
 
   const updateLocalStorage = (updatedMaterials: RawMaterial[]) => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedMaterials));
   };
 
-  const addMaterial = (newMaterialData: Omit<RawMaterial, 'id'>) => {
+  const addMaterial = (newMaterialData: Omit<RawMaterial, 'id'>): RawMaterial => {
     const newMaterial: RawMaterial = {
       ...newMaterialData,
-      id: `mat-${Date.now()}`, // NOTE: Not a robust way to generate IDs
+      id: `mat-${Date.now()}`, // NOTE: Not a real DB ID
     };
     const updatedMaterials = [newMaterial, ...materials];
     setMaterials(updatedMaterials);
     updateLocalStorage(updatedMaterials);
+    syncMaterialLists(updatedMaterials);
     return newMaterial;
   };
 
-  const updateMaterial = (id: string, updatedMaterialData: Partial<Omit<RawMaterial, 'id'>>) => {
+  const updateMaterial = (id: string, updatedData: Partial<Omit<RawMaterial, 'id'>>) => {
     const updatedMaterials = materials.map((material) =>
-      material.id === id ? { ...material, ...updatedMaterialData } : material
+      material.id === id ? { ...material, ...updatedData } : material
     );
     setMaterials(updatedMaterials);
     updateLocalStorage(updatedMaterials);
+    syncMaterialLists(updatedMaterials);
   };
 
   const deleteMaterial = (id: string) => {
     const updatedMaterials = materials.filter((material) => material.id !== id);
     setMaterials(updatedMaterials);
     updateLocalStorage(updatedMaterials);
+    syncMaterialLists(updatedMaterials);
   };
 
   return { materials, isLoading, addMaterial, updateMaterial, deleteMaterial };
