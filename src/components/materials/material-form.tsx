@@ -93,7 +93,9 @@ export function MaterialForm({ initialData, onClose, providers = [], categories 
     const onSubmit = async (data: MaterialFormValues) => {
         setIsSubmitting(true);
         try {
-            onSave(data);
+                        if (data.provider === '__custom_provider__') data.provider = '';
+            if (data.category === '__custom_category__') data.category = '';
+onSave(data);
             if (initialData) {
                  toast({
                     title: "Material Updated",
