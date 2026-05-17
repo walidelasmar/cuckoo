@@ -22,6 +22,7 @@ import type { RawMaterial } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { getList, MATERIAL_PROVIDERS_KEY, MATERIAL_CATEGORIES_KEY } from '@/lib/lists';
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -46,6 +47,8 @@ interface MaterialFormProps {
 }
 
 export function MaterialForm({ initialData, onClose, providers = [], categories = [], onSave }: MaterialFormProps) {
+    const effectiveProviders = Array.from(new Set([...providers, ...getList(MATERIAL_PROVIDERS_KEY)]));
+    const effectiveCategories = Array.from(new Set([...categories, ...getList(MATERIAL_CATEGORIES_KEY)]));
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const shortNameRef = useRef<HTMLInputElement>(null);
@@ -148,7 +151,7 @@ onSave(data);
                   control={form.control}
                   name="provider"
                   render={({ field }) => {
-                    const isCustomProvider = !!field.value && !providers.includes(field.value);
+                    const isCustomProvider = !!field.value && !effectiveProviders.includes(field.value);
                     const showProviderInput = isCustomProvider || field.value === '__custom_provider__';
                     return (
                       <FormItem>
@@ -169,7 +172,7 @@ onSave(data);
                                 <SelectValue placeholder="Select or type a provider" />
                               </SelectTrigger>
                               <SelectContent>
-                                {providers.map((prov) => (
+                                {effectiveProviders.map((prov) => (
                                   <SelectItem key={prov} value={prov}>{prov}</SelectItem>
                                 ))}
                                 <SelectItem value="__custom_provider__">+ New provider…</SelectItem>
@@ -194,7 +197,7 @@ onSave(data);
                    control={form.control}
                    name="category"
                    render={({ field }) => {
-                     const isCustomCategory = !!field.value && !categories.includes(field.value);
+                     const isCustomCategory = !!field.value && !effectiveCategories.includes(field.value);
                      const showCategoryInput = isCustomCategory || field.value === '__custom_category__';
                      return (
                        <FormItem>
@@ -215,7 +218,7 @@ onSave(data);
                                  <SelectValue placeholder="Select or type a category" />
                                </SelectTrigger>
                                <SelectContent>
-                                 {categories.map((cat) => (
+                                 {effectiveCategories.map((cat) => (
                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                                  ))}
                                  <SelectItem value="__custom_category__">+ New category…</SelectItem>
