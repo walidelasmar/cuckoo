@@ -154,7 +154,7 @@ export default function RecipesPage() {
                         initialData={recipeToEdit}
                         onSave={handleUpdateRecipe} 
                         rawMaterials={materials}
-                        existingCategories={getList(RECIPE_CATEGORIES_KEY)}}
+                        existingCategories={getList(RECIPE_CATEGORIES_KEY)}
                         onCancel={() => setIsEditSheetOpen(false)}
                     />
                 )}
@@ -205,7 +205,7 @@ export default function RecipesPage() {
                 <RecipeForm
                     onSave={handleAddNewRecipe}
                     rawMaterials={materials}
-                    existingCategories={getList(RECIPE_CATEGORIES_KEY)}}
+                    existingCategories={getList(RECIPE_CATEGORIES_KEY)}
                     onCancel={() => setIsNewSheetOpen(false)}
                 />
             </SheetContent>
