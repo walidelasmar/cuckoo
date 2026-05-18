@@ -150,21 +150,64 @@ onSave(data);
                                 <FormField
                   control={form.control}
                   name="provider"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Provider</FormLabel>
-                      <FormControl>
-                        <Input
-                          list="provider-options"
-                          placeholder="e.g. Grain Co."
-                          {...field}
-                        />
+                  render={({ field }) => {
+                    const [open, setOpen] = useState(false);
+                    const wrapperRef = useRef<HTMLDivElement>(null);
+                    const filtered = effectiveProviders.filter((p) =>
+                      p.toLowerCase().includes((field.value ?? '').toLowerCase())
+                    );
+                    useEffect(() => {
+                      const handleClickOutside = (e: MouseEvent) => {
+                        if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+                          setOpen(false);
+                        }
+                      };
+                      document.addEventListener('mousedown', handleClickOutside);
+                      return () => document.removeEventListener('mousedown', handleClickOutside);
+                    }, []);
+                    return (
+                      <FormItem>
+                        <FormLabel>Provider</FormLabel>
+                        <FormControl>
+                          <div ref={wrapperRef} className="relative">
+                            <Input
+                              placeholder="e.g. Grain Co."
+                              {...field}
+                              autoComplete="off"
+                              onFocus={() => setOpen(true)}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setOpen(true);
+                              }}
+                            />
+                            {open && filtered.length > 0 && (
+                              <ul className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover py-1 shadow-md">
+                                {filtered.map((p) => (
+                                  <li
+                                    key={p}
+                                    className={cn(
+                                      "cursor-pointer px-3 py-1.5 text-sm",
+                                      "hover:bg-accent hover:text-accent-foreground"
+                                    )}
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      field.onChange(p);
+                                      setOpen(false);
+                                    }}
+                                  >
+                                    {p}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                  />
                       </FormControl>
-                      <datalist id="provider-options">
-                        {effectiveProviders.map((p) => (
-                          <option key={p} value={p} />
-                        ))}
-                      </datalist>
                       <FormMessage />
                     </FormItem>
                   )}
