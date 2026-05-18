@@ -150,49 +150,25 @@ onSave(data);
                                 <FormField
                   control={form.control}
                   name="provider"
-                  render={({ field }) => {
-                    const isCustomProvider = !!field.value && !effectiveProviders.includes(field.value);
-                    const showProviderInput = isCustomProvider || field.value === '__custom_provider__';
-                    return (
-                      <FormItem>
-                        <FormLabel>Provider</FormLabel>
-                        <FormControl>
-                          <div className="space-y-2">
-                            <Select
-                              value={showProviderInput ? '__custom_provider__' : (field.value ?? '')}
-                              onValueChange={(val) => {
-                                if (val === '__custom_provider__') {
-                                  field.onChange('__custom_provider__');
-                                } else {
-                                  field.onChange(val);
-                                }
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select or type a provider" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {effectiveProviders.map((prov) => (
-                                  <SelectItem key={prov} value={prov}>{prov}</SelectItem>
-                                ))}
-                                <SelectItem value="__custom_provider__">+ New provider…</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            {showProviderInput && (
-                              <Input
-                                placeholder="e.g. Grain Co."
-                                value={field.value === '__custom_provider__' ? '' : (field.value ?? '')}
-                                onChange={(e) => field.onChange(e.target.value)}
-                                autoFocus
-                              />
-                            )}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Provider</FormLabel>
+                      <FormControl>
+                        <Input
+                          list="provider-options"
+                          placeholder="e.g. Grain Co."
+                          {...field}
+                        />
+                      </FormControl>
+                      <datalist id="provider-options">
+                        {effectiveProviders.map((p) => (
+                          <option key={p} value={p} />
+                        ))}
+                      </datalist>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                  />
                                   <FormField
                    control={form.control}
                    name="category"
