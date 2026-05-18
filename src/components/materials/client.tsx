@@ -18,7 +18,7 @@ interface MaterialsClientProps {
   deleteMaterial: (id: string) => void;
 }
 
-export default function MaterialsClient({ { data, providers, categories, addMaterial, updateMaterial, deleteMaterial }: MaterialsClientProps) {
+export default function MaterialsClient({ data, providers, categories, addMaterial, updateMaterial, deleteMaterial }: MaterialsClientProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [globalFilter, setGlobalFilter] = useState('');
   
