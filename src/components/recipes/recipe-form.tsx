@@ -210,50 +210,58 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                             control={form.control}
                             name="category"
                             render={({ field }) => {
-                                const isCustom = !!field.value && !existingCategories.includes(field.value);
-                                const showCustomInput = isCustom || field.value === '__custom__';
+                                const [catOpen, setCatOpen] = useState(false);
+                                const catWrapperRef = useRef<HTMLDivElement>(null);
+                                const filteredCats = existingCategories.filter((c) =>
+                                    c.toLowerCase().includes((field.value ?? '').toLowerCase())
+                                );
+                                useEffect(() => {
+                                    const handleCatClickOutside = (e: MouseEvent) => {
+                                        if (catWrapperRef.current && !catWrapperRef.current.contains(e.target as Node)) {
+                                            setCatOpen(false);
+                                        }
+                                    };
+                                    document.addEventListener('mousedown', handleCatClickOutside);
+                                    return () => document.removeEventListener('mousedown', handleCatClickOutside);
+                                }, []);
                                 return (
                                 <FormItem>
-                                <FormLabel>Category</FormLabel>
-                                <FormControl>
-                                    <div className="space-y-2">
-                                        <Select
-                                            value={showCustomInput ? '__custom__' : (field.value ?? '')}
-                                            onValueChange={(val) => {
-                                                if (val === '__custom__') {
-                                                    field.onChange('__custom__');
-                                                } else {
-                                                    field.onChange(val);
-                                                }
-                                            }}
-                                        >
-                                            <SelectTrigger tabIndex={3}>
-                                                <SelectValue placeholder="Select or type a category" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {existingCategories.map((cat) => (
-                                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                                ))}
-                                                <SelectItem value="__custom__">+ New category…</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        {showCustomInput && (
+                                    <FormLabel>Category</FormLabel>
+                                    <FormControl>
+                                        <div ref={catWrapperRef} className="relative">
                                             <Input
-                                                tabIndex={3}
-                                                placeholder="e.g. Breakfast"
-                                                value={field.value === '__custom__' ? '' : (field.value ?? '')}
-                                                onChange={(e) => field.onChange(e.target.value)}
-                                                autoFocus
-                                            />
-                                        )}
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
+                                                {...field}
+                                                placeholder="Type or select category"
+                                                onFocus={() => setCatOpen(true)}
+                                                onChange={(e) => {
+                                                    field.onChange(e);
+                                                    setCatOpen(true);
+                                                }}
+                                                />
+                                            {catOpen && filteredCats.length > 0 && (
+                                                <ul className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover py-1 shadow-md">
+                                                    {filteredCats.map((c) => (
+                                                        <li
+                                                            key={c}
+                                                            className="px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                                                            onMouseDown={(e) => {
+                                                                e.preventDefault();
+                                                                field.onChange(c);
+                                                                setCatOpen(false);
+                                                            }}
+                                                            >
+                                                                {c}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                                 );
                             }}
-                        />
-                        <FormField
+                            />                        <FormField
                             control={form.control}
                             name="portions"
                             render={({ field }) => (
