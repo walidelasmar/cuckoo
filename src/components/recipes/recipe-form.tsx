@@ -25,7 +25,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { calculateRecipeCost } from '@/lib/utils';
+import { cn, calculateRecipeCost } from '@/lib/utils';
 import { CostBreakdownChart } from './cost-breakdown-chart';
 
 const recipeFormSchema = z.object({
@@ -211,6 +211,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                             name="category"
                             render={({ field }) => {
                                 const [catOpen, setCatOpen] = useState(false);
+                                const [catActiveIdx, setCatActiveIdx] = useState(-1);
                                 const catWrapperRef = useRef<HTMLDivElement>(null);
                                 const filteredCats = existingCategories.filter((c) =>
                                     c.toLowerCase().includes((field.value ?? '').toLowerCase())
@@ -219,6 +220,7 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                     const handleCatClickOutside = (e: MouseEvent) => {
                                         if (catWrapperRef.current && !catWrapperRef.current.contains(e.target as Node)) {
                                             setCatOpen(false);
+                                            setCatActiveIdx(-1);
                                         }
                                     };
                                     document.addEventListener('mousedown', handleCatClickOutside);
@@ -236,21 +238,46 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                                 onChange={(e) => {
                                                     field.onChange(e);
                                                     setCatOpen(true);
+                                                    setCatActiveIdx(-1);
                                                 }}
-                                                />
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'ArrowDown') {
+                                                        e.preventDefault();
+                                                        setCatOpen(true);
+                                                        setCatActiveIdx((i) => Math.min(i + 1, filteredCats.length - 1));
+                                                    } else if (e.key === 'ArrowUp') {
+                                                        e.preventDefault();
+                                                        setCatActiveIdx((i) => Math.max(i - 1, 0));
+                                                    } else if (e.key === 'Enter' && catActiveIdx >= 0) {
+                                                        e.preventDefault();
+                                                        field.onChange(filteredCats[catActiveIdx]);
+                                                        setCatOpen(false);
+                                                        setCatActiveIdx(-1);
+                                                    } else if (e.key === 'Escape') {
+                                                        setCatOpen(false);
+                                                        setCatActiveIdx(-1);
+                                                    }
+                                                }}
+                                            />
                                             {catOpen && filteredCats.length > 0 && (
                                                 <ul className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover py-1 shadow-md">
-                                                    {filteredCats.map((c) => (
+                                                    {filteredCats.map((c, i) => (
                                                         <li
                                                             key={c}
-                                                            className="px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                                                            className={cn(
+                                                                "cursor-pointer px-3 py-1.5 text-sm",
+                                                                i === catActiveIdx
+                                                                    ? "bg-accent text-accent-foreground"
+                                                                    : "hover:bg-accent hover:text-accent-foreground"
+                                                            )}
                                                             onMouseDown={(e) => {
                                                                 e.preventDefault();
                                                                 field.onChange(c);
                                                                 setCatOpen(false);
+                                                                setCatActiveIdx(-1);
                                                             }}
-                                                            >
-                                                                {c}
+                                                        >
+                                                            {c}
                                                         </li>
                                                     ))}
                                                 </ul>
@@ -261,7 +288,8 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                 </FormItem>
                                 );
                             }}
-                            />                        <FormField
+                            />
+                        <FormField
                             control={form.control}
                             name="portions"
                             render={({ field }) => (
