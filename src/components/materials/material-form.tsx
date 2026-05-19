@@ -152,6 +152,7 @@ onSave(data);
                   name="provider"
                   render={({ field }) => {
                     const [open, setOpen] = useState(false);
+                    const [activeIdx, setActiveIdx] = useState(-1);
                     const wrapperRef = useRef<HTMLDivElement>(null);
                     const filtered = effectiveProviders.filter((p) =>
                       p.toLowerCase().includes((field.value ?? '').toLowerCase())
@@ -160,6 +161,7 @@ onSave(data);
                       const handleClickOutside = (e: MouseEvent) => {
                         if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
                           setOpen(false);
+                          setActiveIdx(-1);
                         }
                       };
                       document.addEventListener('mousedown', handleClickOutside);
@@ -178,21 +180,43 @@ onSave(data);
                               onChange={(e) => {
                                 field.onChange(e);
                                 setOpen(true);
+                                setActiveIdx(-1);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'ArrowDown') {
+                                  e.preventDefault();
+                                  setOpen(true);
+                                  setActiveIdx((i) => Math.min(i + 1, filtered.length - 1));
+                                } else if (e.key === 'ArrowUp') {
+                                  e.preventDefault();
+                                  setActiveIdx((i) => Math.max(i - 1, 0));
+                                } else if (e.key === 'Enter' && activeIdx >= 0) {
+                                  e.preventDefault();
+                                  field.onChange(filtered[activeIdx]);
+                                  setOpen(false);
+                                  setActiveIdx(-1);
+                                } else if (e.key === 'Escape') {
+                                  setOpen(false);
+                                  setActiveIdx(-1);
+                                }
                               }}
                             />
                             {open && filtered.length > 0 && (
                               <ul className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover py-1 shadow-md">
-                                {filtered.map((p) => (
+                                {filtered.map((p, i) => (
                                   <li
                                     key={p}
                                     className={cn(
                                       "cursor-pointer px-3 py-1.5 text-sm",
-                                      "hover:bg-accent hover:text-accent-foreground"
+                                      i === activeIdx
+                                        ? "bg-accent text-accent-foreground"
+                                        : "hover:bg-accent hover:text-accent-foreground"
                                     )}
                                     onMouseDown={(e) => {
                                       e.preventDefault();
                                       field.onChange(p);
                                       setOpen(false);
+                                      setActiveIdx(-1);
                                     }}
                                   >
                                     {p}
@@ -212,6 +236,7 @@ onSave(data);
                     name="category"
                     render={({ field }) => {
                       const [catOpen, setCatOpen] = useState(false);
+                      const [catActiveIdx, setCatActiveIdx] = useState(-1);
                       const catWrapperRef = useRef<HTMLDivElement>(null);
                       const filteredCats = effectiveCategories.filter((c) =>
                         c.toLowerCase().includes((field.value ?? '').toLowerCase())
@@ -220,6 +245,7 @@ onSave(data);
                         const handleCatClickOutside = (e: MouseEvent) => {
                           if (catWrapperRef.current && !catWrapperRef.current.contains(e.target as Node)) {
                             setCatOpen(false);
+                            setCatActiveIdx(-1);
                           }
                         };
                         document.addEventListener('mousedown', handleCatClickOutside);
@@ -237,21 +263,46 @@ onSave(data);
                                 onChange={(e) => {
                                   field.onChange(e);
                                   setCatOpen(true);
+                                  setCatActiveIdx(-1);
                                 }}
-                                />
+                                onKeyDown={(e) => {
+                                  if (e.key === 'ArrowDown') {
+                                    e.preventDefault();
+                                    setCatOpen(true);
+                                    setCatActiveIdx((i) => Math.min(i + 1, filteredCats.length - 1));
+                                  } else if (e.key === 'ArrowUp') {
+                                    e.preventDefault();
+                                    setCatActiveIdx((i) => Math.max(i - 1, 0));
+                                  } else if (e.key === 'Enter' && catActiveIdx >= 0) {
+                                    e.preventDefault();
+                                    field.onChange(filteredCats[catActiveIdx]);
+                                    setCatOpen(false);
+                                    setCatActiveIdx(-1);
+                                  } else if (e.key === 'Escape') {
+                                    setCatOpen(false);
+                                    setCatActiveIdx(-1);
+                                  }
+                                }}
+                              />
                               {catOpen && filteredCats.length > 0 && (
                                 <ul className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover py-1 shadow-md">
-                                  {filteredCats.map((c) => (
+                                  {filteredCats.map((c, i) => (
                                     <li
                                       key={c}
-                                      className="px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                                      className={cn(
+                                        "cursor-pointer px-3 py-1.5 text-sm",
+                                        i === catActiveIdx
+                                          ? "bg-accent text-accent-foreground"
+                                          : "hover:bg-accent hover:text-accent-foreground"
+                                      )}
                                       onMouseDown={(e) => {
                                         e.preventDefault();
                                         field.onChange(c);
                                         setCatOpen(false);
+                                        setCatActiveIdx(-1);
                                       }}
-                                      >
-                                        {c}
+                                    >
+                                      {c}
                                     </li>
                                   ))}
                                 </ul>
@@ -262,7 +313,7 @@ onSave(data);
                         </FormItem>
                       );
                     }}
-                    />            </div>
+                    />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
