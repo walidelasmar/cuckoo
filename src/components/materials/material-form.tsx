@@ -208,52 +208,61 @@ onSave(data);
                   }}
                   />
                                   <FormField
-                   control={form.control}
-                   name="category"
-                   render={({ field }) => {
-                     const isCustomCategory = !!field.value && !effectiveCategories.includes(field.value);
-                     const showCategoryInput = isCustomCategory || field.value === '__custom_category__';
-                     return (
-                       <FormItem>
-                         <FormLabel>Category</FormLabel>
-                         <FormControl>
-                           <div className="space-y-2">
-                             <Select
-                               value={showCategoryInput ? '__custom_category__' : (field.value ?? '')}
-                               onValueChange={(val) => {
-                                 if (val === '__custom_category__') {
-                                   field.onChange('__custom_category__');
-                                 } else {
-                                   field.onChange(val);
-                                 }
-                               }}
-                             >
-                               <SelectTrigger>
-                                 <SelectValue placeholder="Select or type a category" />
-                               </SelectTrigger>
-                               <SelectContent>
-                                 {effectiveCategories.map((cat) => (
-                                   <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                 ))}
-                                 <SelectItem value="__custom_category__">+ New category…</SelectItem>
-                               </SelectContent>
-                             </Select>
-                             {showCategoryInput && (
-                               <Input
-                                 placeholder="e.g. Grains"
-                                 value={field.value === '__custom_category__' ? '' : (field.value ?? '')}
-                                 onChange={(e) => field.onChange(e.target.value)}
-                                 autoFocus
-                               />
-                             )}
-                           </div>
-                         </FormControl>
-                         <FormMessage />
-                       </FormItem>
-                     );
-                   }}
-                 />
-            </div>
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => {
+                      const [catOpen, setCatOpen] = useState(false);
+                      const catWrapperRef = useRef<HTMLDivElement>(null);
+                      const filteredCats = effectiveCategories.filter((c) =>
+                        c.toLowerCase().includes((field.value ?? '').toLowerCase())
+                      );
+                      useEffect(() => {
+                        const handleCatClickOutside = (e: MouseEvent) => {
+                          if (catWrapperRef.current && !catWrapperRef.current.contains(e.target as Node)) {
+                            setCatOpen(false);
+                          }
+                        };
+                        document.addEventListener('mousedown', handleCatClickOutside);
+                        return () => document.removeEventListener('mousedown', handleCatClickOutside);
+                      }, []);
+                      return (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <FormControl>
+                            <div ref={catWrapperRef} className="relative">
+                              <Input
+                                {...field}
+                                placeholder="Type or select category"
+                                onFocus={() => setCatOpen(true)}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setCatOpen(true);
+                                }}
+                                />
+                              {catOpen && filteredCats.length > 0 && (
+                                <ul className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover py-1 shadow-md">
+                                  {filteredCats.map((c) => (
+                                    <li
+                                      key={c}
+                                      className="px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        field.onChange(c);
+                                        setCatOpen(false);
+                                      }}
+                                      >
+                                        {c}
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                    />            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
