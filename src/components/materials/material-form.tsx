@@ -207,11 +207,6 @@ onSave(data);
                     );
                   }}
                   />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                  />
                                   <FormField
                    control={form.control}
                    name="category"
