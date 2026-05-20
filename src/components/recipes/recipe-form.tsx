@@ -440,6 +440,28 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                                         }}
                                     />
                                 </div>
+                                <div className="col-span-6 md:col-span-3">
+                                    <FormField
+                                        control={form.control}
+                                        name={`ingredients.${index}.quantity`}
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="sr-only">Quantity</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Qty"
+                                                        min="0"
+                                                        step="0.01"
+                                                        {...field}
+                                                        onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
                                  <div className="col-span-6 md:col-span-3">
                                     <FormField
                                         control={form.control}
