@@ -66,6 +66,7 @@ export default function EditRecipePage() {
         rawMaterials={materials}
         onCancel={() => router.push('/dashboard/recipes')}
         existingCategories={getList(RECIPE_CATEGORIES_KEY)}
+                existingRecipes={recipes}
       />
     </main>
   );
