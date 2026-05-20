@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import * as z from 'zod';
 import { useState, useRef, useEffect } from 'react';
 
@@ -89,9 +89,9 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
         name: "ingredients"
     });
 
-    const watchedIngredients = form.watch("ingredients");
-    const watchedPortions = form.watch("portions");
-    const watchedPricePerServing = form.watch("pricePerServing");
+    const watchedIngredients = useWatch({ control: form.control, name: "ingredients" }) ?? [];
+    const watchedPortions = useWatch({ control: form.control, name: "portions" });
+    const watchedPricePerServing = useWatch({ control: form.control, name: "pricePerServing" });
     
     const rawMaterialsById = React.useMemo(() => {
         const map = new Map<string, RawMaterial>();
@@ -222,7 +222,7 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
             </FormItem>
           )}
         />
-        <ScrollArea className="h-[calc(100vh-16rem)]">
+        <ScrollArea className="h-[calc(100vh-12rem)]">
             <div className="space-y-6 p-1 pr-6">
                 <div className="space-y-4">
                          <FormField
@@ -475,6 +475,7 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                                                 ? UNITS.filter(u => u.value === 'portion')
                                                 : unitCat === 'weight' ? UNITS.filter(u => UNIT_CATEGORIES[u.value as keyof typeof UNIT_CATEGORIES] === 'weight')
                                                 : unitCat === 'volume' ? UNITS.filter(u => UNIT_CATEGORIES[u.value as keyof typeof UNIT_CATEGORIES] === 'volume')
+                                                : unitCat === 'count' ? UNITS.filter(u => u.value === 'pc')
                                                 : UNITS.filter(u => u.value !== 'portion');
                                             return (
                                                 <FormItem>
