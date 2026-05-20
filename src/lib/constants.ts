@@ -11,6 +11,7 @@ export const UNITS: { value: Unit; label: string }[] = [
   { value: 'tbsp', label: 'Tablespoon (tbsp)' },
   { value: 'cup', label: 'Cup' },
   { value: 'pc', label: 'Piece(s) (pc)' },
+  { value: 'portion', label: 'Portion(s)' },
   ];
 
 export const UNIT_CATEGORIES: { [key in Unit]: 'weight' | 'volume' | 'count' } = {
@@ -24,6 +25,7 @@ export const UNIT_CATEGORIES: { [key in Unit]: 'weight' | 'volume' | 'count' } =
     tbsp: 'volume',
     cup: 'volume',
     pc: 'count',
+  portion: 'count',
 }
 
 export const ALLERGENS = [
