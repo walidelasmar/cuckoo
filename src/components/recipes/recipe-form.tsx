@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ALLERGEN_ICONS, UNITS } from '@/lib/constants';
+import { ALLERGEN_ICONS, UNITS, UNIT_CATEGORIES } from '@/lib/constants';
 import type { RawMaterial, Recipe } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
@@ -38,7 +38,7 @@ const recipeFormSchema = z.object({
     id: z.string().optional(),
     rawMaterialId: z.string().min(1, 'Ingredient is required'),
     quantity: z.coerce.number().min(0.0001, 'Quantity must be positive'),
-    unit: z.enum(['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'pc']),
+    unit: z.enum(['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'pc', 'portion']),
   })).min(1, 'At least one ingredient is required.'),
 });
 
@@ -47,12 +47,13 @@ export type RecipeFormValues = z.infer<typeof recipeFormSchema>;
 interface RecipeFormProps {
     initialData?: Recipe;
     rawMaterials: RawMaterial[];
+  existingRecipes?: Recipe[];
     existingCategories?: string[];
     onSave: (data: RecipeFormValues) => void;
     onCancel: () => void;
 }
 
-export function RecipeForm({ initialData, rawMaterials, existingCategories = [], onSave, onCancel }: RecipeFormProps) {
+export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], existingCategories = [], onSave, onCancel }: RecipeFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const titleRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
@@ -97,6 +98,37 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
         rawMaterials.forEach(m => map.set(m.id, m));
         return map;
     }, [rawMaterials]);
+
+    // Ingredient combobox state
+    const [ingOpenArr, setIngOpenArr] = React.useState<boolean[]>([]);
+    const [ingInputArr, setIngInputArr] = React.useState<string[]>([]);
+    const [ingActiveArr, setIngActiveArr] = React.useState<number[]>([]);
+    const ingWrapperRefs = React.useRef<(HTMLDivElement | null)[]>([]);
+
+    // Returns Set of recipe IDs that cannot be used (would cause circular dependency)
+    const excludedRecipeIds = React.useMemo((): Set<string> => {
+        const currentId = initialData?.id;
+        if (!currentId) return new Set();
+        const excluded = new Set<string>([currentId]);
+        const recipesById = new Map(existingRecipes.map(r => [r.id, r]));
+        const collectAncestors = (targetId: string) => {
+            for (const r of existingRecipes) {
+                if (excluded.has(r.id)) continue;
+                const deps = (rid: string): boolean => {
+                    const rec = recipesById.get(rid);
+                    if (!rec) return false;
+                    for (const ing of rec.ingredients) {
+                        if (ing.rawMaterial.id === targetId) return true;
+                        if (recipesById.has(ing.rawMaterial.id) && deps(ing.rawMaterial.id)) return true;
+                    }
+                    return false;
+                };
+                if (deps(r.id)) { excluded.add(r.id); collectAncestors(r.id); }
+            }
+        };
+        collectAncestors(currentId);
+        return excluded;
+    }, [initialData?.id, existingRecipes]);
 
     const { totalCost, costPerPortion, chartData } = React.useMemo(() => {
         const hydratedIngredients = watchedIngredients.map(ing => ({
@@ -340,63 +372,111 @@ export function RecipeForm({ initialData, rawMaterials, existingCategories = [],
                                     <FormField
                                         control={form.control}
                                         name={`ingredients.${index}.rawMaterialId`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel className="sr-only">Ingredient</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl>
-                                                <SelectTrigger tabIndex={6 + index * 3}>
-                                                    <SelectValue placeholder="Select an ingredient" />
-                                                </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {rawMaterials.map(material => (
-                                                        <SelectItem key={material.id} value={material.id}>{material.shortName}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                                 <div className="col-span-6 md:col-span-3">
-                                    <FormField
-                                        control={form.control}
-                                        name={`ingredients.${index}.quantity`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel className="sr-only">Quantity</FormLabel>
-                                            <FormControl>
-                                                <Input tabIndex={7 + index * 3} type="number" placeholder="Qty" min="0" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                            </FormItem>
-                                        )}
+                                        render={({ field }) => {
+                                            const ingItems = [
+                                                ...rawMaterials.map(m => ({ id: m.id, label: m.shortName, type: 'material' as const, unit: m.unit })),
+                                                ...existingRecipes.filter(r => !excludedRecipeIds.has(r.id)).map(r => ({ id: r.id, label: r.name, type: 'recipe' as const, unit: 'portion' as const })),
+                                            ];
+                                            const ingInput = ingInputArr[index] ?? (field.value ? (ingItems.find(i => i.id === field.value)?.label ?? field.value) : '');
+                                            const isOpen = ingOpenArr[index] ?? false;
+                                            const activeIdx = ingActiveArr[index] ?? -1;
+                                            const filtered = ingItems.filter(i => i.label.toLowerCase().includes(ingInput.toLowerCase()));
+                                            const isValid = !field.value || ingItems.some(i => i.id === field.value);
+                                            const setOpen = (v: boolean) => setIngOpenArr(a => { const n = [...a]; n[index] = v; return n; });
+                                            const setActive = (v: number) => setIngActiveArr(a => { const n = [...a]; n[index] = v; return n; });
+                                            const setInput = (v: string) => setIngInputArr(a => { const n = [...a]; n[index] = v; return n; });
+                                            const handleSelect = (item: (typeof ingItems)[0]) => {
+                                                field.onChange(item.id);
+                                                setInput(item.label);
+                                                setOpen(false);
+                                                setActive(-1);
+                                                if (item.type === 'recipe') {
+                                                    form.setValue(`ingredients.${index}.unit`, 'portion');
+                                                } else {
+                                                    form.setValue(`ingredients.${index}.unit`, item.unit);
+                                                }
+                                            };
+                                            return (
+                                                <FormItem>
+                                                    <FormLabel className="sr-only">Ingredient</FormLabel>
+                                                    <FormControl>
+                                                        <div
+                                                            ref={el => { ingWrapperRefs.current[index] = el; }}
+                                                            className="relative"
+                                                            onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false); }}
+                                                        >
+                                                            <input
+                                                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                                                placeholder="Search ingredient..."
+                                                                value={ingInput}
+                                                                onChange={e => { setInput(e.target.value); setOpen(true); setActive(-1); if (e.target.value === '') field.onChange(''); }}
+                                                                onFocus={() => { setOpen(true); }}
+                                                                onKeyDown={e => {
+                                                                    if (e.key === 'ArrowDown') { e.preventDefault(); setActive(Math.min(activeIdx + 1, filtered.length - 1)); }
+                                                                    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(activeIdx - 1, 0)); }
+                                                                    else if (e.key === 'Enter') { e.preventDefault(); if (activeIdx >= 0 && filtered[activeIdx]) handleSelect(filtered[activeIdx]); }
+                                                                    else if (e.key === 'Escape') setOpen(false);
+                                                                }}
+                                                            />
+                                                            {isOpen && filtered.length > 0 && (
+                                                                <ul className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border bg-popover text-sm shadow-md">
+                                                                    {filtered.map((item, i) => (
+                                                                        <li
+                                                                            key={item.id}
+                                                                            className={cn('px-3 py-1.5 cursor-pointer', i === activeIdx ? 'bg-accent' : 'hover:bg-accent/50')}
+                                                                            onMouseDown={e => { e.preventDefault(); handleSelect(item); }}
+                                                                        >
+                                                                            {item.label}{item.type === 'recipe' ? ' (recipe)' : ''}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            )}
+                                                        </div>
+                                                    </FormControl>
+                                                    {field.value && !isValid && <p className="text-sm text-destructive mt-1">Material not in the list!</p>}
+                                                    {!field.value && <FormMessage />}
+                                                </FormItem>
+                                            )
+                                        }}
                                     />
                                 </div>
                                  <div className="col-span-6 md:col-span-3">
                                     <FormField
                                         control={form.control}
                                         name={`ingredients.${index}.unit`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                            <FormLabel className="sr-only">Unit</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                    <SelectTrigger tabIndex={8 + index * 3}>
-                                                        <SelectValue placeholder="Unit" />
-                                                    </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {UNITS.map(unit => (
-                                                            <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
+                                        render={({ field }) => {
+                                            const currentIngId = form.watch(`ingredients.${index}.rawMaterialId`);
+                                            const selectedMaterial = rawMaterials.find(m => m.id === currentIngId);
+                                            const isRecipe = existingRecipes.some(r => r.id === currentIngId);
+                                            const unitCat = selectedMaterial ? UNIT_CATEGORIES[selectedMaterial.unit as keyof typeof UNIT_CATEGORIES] : null;
+                                            const allowedUnits = isRecipe
+                                                ? UNITS.filter(u => u.value === 'portion')
+                                                : unitCat === 'weight' ? UNITS.filter(u => UNIT_CATEGORIES[u.value as keyof typeof UNIT_CATEGORIES] === 'weight')
+                                                : unitCat === 'volume' ? UNITS.filter(u => UNIT_CATEGORIES[u.value as keyof typeof UNIT_CATEGORIES] === 'volume')
+                                                : UNITS.filter(u => u.value !== 'portion');
+                                            return (
+                                                <FormItem>
+                                                    <FormLabel className="sr-only">Unit</FormLabel>
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                        disabled={isRecipe}
+                                                    >
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Unit" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {allowedUnits.map(unit => (
+                                                                <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )
+                                        }}
                                     />
                                 </div>
                                 <div className="col-span-12 md:col-span-1 flex items-center justify-end">
