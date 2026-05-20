@@ -125,7 +125,7 @@ onSave(data);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 pt-4">
-        <ScrollArea className="h-[calc(100vh-16rem)]">
+        <ScrollArea className="h-[calc(100vh-10rem)]">
           <div className="space-y-4 p-1 pr-6">
             
             <FormField
