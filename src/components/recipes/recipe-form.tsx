@@ -349,7 +349,7 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                                                 tabIndex={5}
                                                 type="number"
                                                 placeholder="0.00"
-                                                step="0.01"
+                                                step="1"
                                                 {...field}
                                                 onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
                                                 className="pl-7"
@@ -365,9 +365,9 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                     <CardHeader>
                         <CardTitle>Ingredients</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-1">
                          {fields.map((field, index) => (
-                            <div key={field.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-start p-3 border rounded-lg relative">
+                            <div key={field.id} className="grid grid-cols-12 gap-x-4 gap-y-2 items-start relative">
                                 <div className="col-span-12 md:col-span-5">
                                     <FormField
                                         control={form.control}
