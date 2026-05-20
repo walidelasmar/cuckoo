@@ -8,7 +8,8 @@ export type Unit =
   | 'tsp'
   | 'tbsp'
   | 'cup'
-  | 'pc';
+  | 'pc'
+  | 'portion';
 
 export type RawMaterial = {
   id: string;
