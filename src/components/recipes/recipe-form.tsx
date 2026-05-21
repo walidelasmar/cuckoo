@@ -130,12 +130,35 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
         return excluded;
     }, [initialData?.id, existingRecipes]);
 
+      const recipesById = React.useMemo(() => {
+                const map = new Map<string, Recipe>();
+                existingRecipes.forEach(r => map.set(r.id, r));
+                return map;
+      }, [existingRecipes]);
+
     const { totalCost, costPerPortion, chartData } = React.useMemo(() => {
-        const hydratedIngredients = watchedIngredients.map(ing => ({
-            ...ing,
-            id: ing.id || '',
-            rawMaterial: rawMaterialsById.get(ing.rawMaterialId)!
-        })).filter(ing => ing.rawMaterial);
+                const hydratedIngredients = watchedIngredients.map(ing => {
+                              const material = rawMaterialsById.get(ing.rawMaterialId);
+                              if (material) return { ...ing, id: ing.id || '', rawMaterial: material };
+                              // Recipe as ingredient: build a synthetic RawMaterial where cost = costPerPortion
+                              const recipeIng = recipesById.get(ing.rawMaterialId);
+                              if (recipeIng) {
+                                                const { costPerPortion: recipeCostPerPortion } = calculateRecipeCost(recipeIng);
+                                                const syntheticMaterial: RawMaterial = {
+                                                                      id: recipeIng.id,
+                                                                      name: recipeIng.name,
+                                                                      shortName: recipeIng.name,
+                                                                      category: '',
+                                                                      provider: '',
+                                                                      sku: '',
+                                                                      quantity: 1,
+                                                                      unit: 'portion',
+                                                                      cost: recipeCostPerPortion,
+                                                };
+                                                return { ...ing, id: ing.id || '', rawMaterial: syntheticMaterial };
+                              }
+                              return null;
+                }).filter((ing): ing is NonNullable<typeof ing> => ing !== null && ing.rawMaterial !== undefined);
     
         const recipeForCosting: Recipe = {
             id: initialData?.id || '',
@@ -161,7 +184,7 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
         });
     
         return { totalCost, costPerPortion, chartData };
-    }, [watchedIngredients, watchedPortions, rawMaterialsById, initialData?.id, form]);
+    }, [watchedIngredients, watchedPortions, rawMaterialsById, recipesById, initialData?.id, form]);
 
     const profitMargin = watchedPricePerServing && watchedPricePerServing > 0
         ? ((watchedPricePerServing - costPerPortion) / watchedPricePerServing) * 100
@@ -452,7 +475,7 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                                                         type="number"
                                                         placeholder="Qty"
                                                         min="0"
-                                                        step="0.01"
+                                                        step="1"
                                                         {...field}
                                                         onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
                                                     />
