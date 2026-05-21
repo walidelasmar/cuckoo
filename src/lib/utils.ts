@@ -33,6 +33,12 @@ export function calculateRecipeCost(recipe: Recipe) {
         totalCost += (ingredient.quantity / rawMaterial.quantity) * rawMaterial.cost;
         continue;
     }
+
+        // Recipe-as-ingredient: cost per portion * number of portions used
+        if (ingredient.unit === 'portion') {
+                  totalCost += ingredient.quantity * rawMaterial.cost;
+                  continue;
+        }
     
     const ingredientConversion = CONVERSIONS_TO_BASE[ingredient.unit];
     const materialConversion = CONVERSIONS_TO_BASE[rawMaterial.unit];
