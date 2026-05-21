@@ -494,6 +494,14 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                                             const selectedMaterial = rawMaterials.find(m => m.id === currentIngId);
                                             const isRecipe = existingRecipes.some(r => r.id === currentIngId);
                                             const unitCat = selectedMaterial ? UNIT_CATEGORIES[selectedMaterial.unit as keyof typeof UNIT_CATEGORIES] : null;
+                                          React.useEffect(() => {
+                                                                                            if (!currentIngId) return;
+                                                                                            if (isRecipe) {
+                                                                                                                                                  field.onChange('portion');
+                                                                                              } else if (selectedMaterial) {
+                                                                                                                                                  field.onChange(selectedMaterial.unit);
+                                                                                              }
+                                          }, [currentIngId]);
                                             const allowedUnits = isRecipe
                                                 ? UNITS.filter(u => u.value === 'portion')
                                                 : unitCat === 'weight' ? UNITS.filter(u => UNIT_CATEGORIES[u.value as keyof typeof UNIT_CATEGORIES] === 'weight')
