@@ -475,7 +475,7 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                                                         type="number"
                                                         placeholder="Qty"
                                                         min="0"
-                                                        step="1"
+                                                        step="0.25"
                                                         {...field}
                                                         onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
                                                     />
