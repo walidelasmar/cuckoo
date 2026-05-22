@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { Recipe, Unit } from './types';
+import type { Recipe, RawMaterial } from './types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -20,11 +20,11 @@ const CONVERSIONS_TO_BASE: { [key in Unit]?: { base: 'g' | 'ml'; value: number }
 };
 
 
-export function calculateRecipeCost(recipe: Recipe) {
+export function calculateRecipeCost(recipe: Recipe, materialsById?: Map<string, RawMaterial>) {
   let totalCost = 0;
 
   for (const ingredient of recipe.ingredients) {
-    const rawMaterial = ingredient.rawMaterial;
+    const rawMaterial = (materialsById ? materialsById.get(ingredient.rawMaterial?.id ?? '') : null) ?? ingredient.rawMaterial;
 
     if (!rawMaterial) continue;
 
