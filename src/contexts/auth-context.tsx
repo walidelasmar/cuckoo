@@ -21,7 +21,7 @@ export const validatePassword = (password: string): string | null => {
   if (password.length < 8) return 'Password must be at least 8 characters.';
   if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter.';
   if (!/[0-9]/.test(password)) return 'Password must contain at least one number.';
-  if (!/[!@#$%^&*()_+\-=\[\]{};:'",.<>?/\\|]/.test(password))
+  if (!/[!@#$%^&*()_+\-=\[\]{};:\'",.<>?/\\|]/.test(password))
     return 'Password must contain at least one special character.';
   return null;
 };
@@ -64,6 +64,30 @@ const appendAuditLog = (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => {
   } catch { /* silent */ }
 };
 
+const SUPER_ADMIN_EMAIL = 'walid@bernoullifinance.com';
+const SUPER_ADMIN_ID = 'usr-superadmin';
+
+const ensureSuperAdmin = (): void => {
+  try {
+    const users = loadUsers();
+    const existing = users.find(u => u.id === SUPER_ADMIN_ID);
+    if (!existing) {
+      const superAdmin: User = {
+        id: SUPER_ADMIN_ID,
+        email: SUPER_ADMIN_EMAIL,
+        fullName: 'Super Admin',
+        role: 'super_admin',
+        orgId: null as unknown as string,
+        passwordHash: hashPassword('pmk.gwv5ABY-nhk4amj'),
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        failedLoginAttempts: 0,
+      };
+      saveUsers([...users, superAdmin]);
+    }
+  } catch { /* silent */ }
+};
+
 export type AuthContextType = {
   currentUser: User | null;
   currentOrg: Organization | null;
@@ -90,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    ensureSuperAdmin();
     const session = loadSession();
     if (!session) { setIsLoading(false); return; }
     const now = Date.now();
