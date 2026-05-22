@@ -44,6 +44,14 @@ export default function RecipesPage() {
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const dependentRecipes = useMemo(() => {
+    if (!recipeToDelete) return [];
+    return recipes.filter(r =>
+      r.id !== recipeToDelete &&
+      r.ingredients.some(ing => ing.rawMaterial.id === recipeToDelete)
+    );
+  }, [recipeToDelete, recipes]);
+
   const handleEdit = (recipe: Recipe) => {
     setRecipeToEdit(recipe);
     setIsEditSheetOpen(true);
@@ -66,6 +74,18 @@ export default function RecipesPage() {
     setIsDeleting(true);
     try {
       const recipeName = recipes.find(r => r.id === recipeToDelete)?.name || 'Recipe';
+      for (const dep of dependentRecipes) {
+        const cleaned = dep.ingredients.filter(ing => ing.rawMaterial.id !== recipeToDelete);
+        updateRecipe(dep.id, {
+          ...dep,
+          ingredients: cleaned.map(ing => ({
+            id: ing.id,
+            rawMaterialId: ing.rawMaterial.id,
+            quantity: ing.quantity,
+            unit: ing.unit,
+          })),
+        });
+      }
         deleteRecipe(recipeToDelete);
         toast({
             title: "Recipe Deleted",
@@ -126,10 +146,15 @@ export default function RecipesPage() {
         <AlertDialog open={!!recipeToDelete} onOpenChange={(open) => !open && setRecipeToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>
+                        {dependentRecipes.length > 0
+                            ? 'Are you sure you want to delete this recipe and alter its dependent recipes?'
+                            : 'Are you sure you want to delete this recipe?'}
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete this
-                        recipe.
+                        {dependentRecipes.length > 0
+                            ? 'This action cannot be undone. This will permanently delete this recipe and alter all the recipes that depend on it.'
+                            : 'This action cannot be undone. This will permanently delete this recipe.'}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
