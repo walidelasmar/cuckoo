@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Recipe, RawMaterial, Ingredient, Unit } from '@/lib/types';
 import { recipes as initialRecipes, rawMaterials as initialRawMaterials } from '@/lib/data';
 import { syncRecipeLists } from '@/lib/lists';
+import { useAuth } from '@/hooks/use-auth';
 
-const RECIPES_STORAGE_KEY = 'recipes';
-const MATERIALS_STORAGE_KEY = 'rawMaterials';
+const getRecipesKey = (orgId: string) => orgId ? `recipes_${orgId}` : 'recipes';
+const getMaterialsKey = (orgId: string) => orgId ? `rawMaterials_${orgId}` : 'rawMaterials';
 
 type StorableIngredient = Omit<Ingredient, 'rawMaterial' | 'id'> & { id?: string, rawMaterialId: string };
 type StorableRecipe = Omit<Recipe, 'ingredients'> & {
@@ -17,6 +18,11 @@ export type RecipeFormValues = Omit<Recipe, 'id' | 'ingredients'> & {
 };
 
 export function useRecipes() {
+  const { currentUser } = useAuth();
+  const orgId = currentUser?.orgId || '';
+  const RECIPES_STORAGE_KEY = getRecipesKey(orgId);
+  const MATERIALS_STORAGE_KEY = getMaterialsKey(orgId);
+
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,9 +33,14 @@ export function useRecipes() {
     } catch {
       return initialRawMaterials;
     }
-  }, []);
+  }, [MATERIALS_STORAGE_KEY]);
 
   useEffect(() => {
+    if (!currentUser) {
+      setRecipes([]);
+      setIsLoading(false);
+      return;
+    }
     try {
       const storedRecipesJSON = localStorage.getItem(RECIPES_STORAGE_KEY);
       const materials = getMaterials();
@@ -61,7 +72,6 @@ export function useRecipes() {
         }))
       }));
       
-      // Second pass: resolve recipe-based ingredients
       const recipesById = new Map(hydratedRecipes.map(r => [r.id, r]));
       const resolvedRecipes = hydratedRecipes.map(recipe => ({
         ...recipe,
@@ -82,7 +92,8 @@ export function useRecipes() {
     } finally {
         setIsLoading(false);
     }
-  }, [getMaterials]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getMaterials, RECIPES_STORAGE_KEY, currentUser?.id]);
 
   const updateLocalStorage = (updatedRecipes: Recipe[]) => {
     const storableRecipes: StorableRecipe[] = updatedRecipes.map(recipe => ({
@@ -129,7 +140,7 @@ export function useRecipes() {
           ...recipe,
           ...updatedRecipeData,
           ingredients: updatedRecipeData.ingredients.map(ing => ({
-            id: ing.id || `ing-${Date.now()}-${Math.random()}`, // create id for new ingredients
+            id: ing.id || `ing-${Date.now()}-${Math.random()}`,
             quantity: ing.quantity,
             unit: ing.unit,
             rawMaterial: (() => { const m = materialsById.get(ing.rawMaterialId); if (m) return m; const r = recipesById.get(ing.rawMaterialId); return r ? { id: r.id, name: r.name, shortName: r.name, category: r.category, provider: '', sku: '', quantity: 0, unit: 'portion' as Unit, cost: 0 } as RawMaterial : undefined!; })(),
