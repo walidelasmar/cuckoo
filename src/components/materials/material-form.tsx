@@ -353,7 +353,24 @@ onSave(data);
                         <FormItem>
                         <FormLabel>Quantity</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="25" {...field} />
+                            <Input
+                                type="number"
+                                placeholder="25"
+                                step="0.25"
+                                {...field}
+                                onChange={event => field.onChange(event.target.value === '' ? '' : +event.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                        e.preventDefault();
+                                        const inp = e.currentTarget as HTMLInputElement;
+                                        const cur = parseFloat(inp.value) || 0;
+                                        const dir = e.key === 'ArrowUp' ? 1 : -1;
+                                        const next = Math.max(0, cur + dir * 0.25);
+                                        const rounded = Math.round(next / 0.25) * 0.25;
+                                        field.onChange(parseFloat(rounded.toFixed(2)));
+                                    }
+                                }}
+                            />
                         </FormControl>
                         <FormMessage />
                         </FormItem>
