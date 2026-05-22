@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Recipe, RawMaterial, Ingredient } from '@/lib/types';
+import type { Recipe, RawMaterial, Ingredient, Unit } from '@/lib/types';
 import { recipes as initialRecipes, rawMaterials as initialRawMaterials } from '@/lib/data';
 import { syncRecipeLists } from '@/lib/lists';
 
@@ -57,12 +57,23 @@ export function useRecipes() {
         ingredients: storableRecipe.ingredients.map(storableIngredient => ({
             ...storableIngredient,
             id: storableIngredient.id || `ing-${Math.random()}`,
-            rawMaterial: materialsById.get(storableIngredient.rawMaterialId)!
-        })).filter(i => i.rawMaterial) 
+            rawMaterial: materialsById.get(storableIngredient.rawMaterialId) as RawMaterial,
+        }))
       }));
       
-      setRecipes(hydratedRecipes);
-      syncRecipeLists(hydratedRecipes);
+      // Second pass: resolve recipe-based ingredients
+      const recipesById = new Map(hydratedRecipes.map(r => [r.id, r]));
+      const resolvedRecipes = hydratedRecipes.map(recipe => ({
+        ...recipe,
+        ingredients: recipe.ingredients.map(ing => {
+          if (ing.rawMaterial) return ing;
+          const refRecipe = recipesById.get((ing as any).rawMaterialId as string);
+          if (!refRecipe) return null;
+          return { ...ing, rawMaterial: { id: refRecipe.id, name: refRecipe.name, shortName: refRecipe.name, category: refRecipe.category, provider: '', sku: '', quantity: 0, unit: 'portion' as Unit, cost: 0 } as RawMaterial };
+        }).filter((i): i is Ingredient => i !== null && !!i.rawMaterial),
+      }));
+      setRecipes(resolvedRecipes);
+      syncRecipeLists(resolvedRecipes);
 
     } catch (error) {
       console.error("Failed to access localStorage for recipes", error);
@@ -89,6 +100,7 @@ export function useRecipes() {
   const addRecipe = (newRecipeData: RecipeFormValues) => {
     const materials = getMaterials();
     const materialsById = new Map(materials.map(m => [m.id, m]));
+    const recipesById = new Map(recipes.map(r => [r.id, r]));
 
     const newRecipe: Recipe = {
       ...newRecipeData,
@@ -96,7 +108,7 @@ export function useRecipes() {
       ingredients: newRecipeData.ingredients.map((ing, index) => ({
         ...ing,
         id: `ing-${Date.now()}-${index}`,
-        rawMaterial: materialsById.get(ing.rawMaterialId)!,
+        rawMaterial: (() => { const m = materialsById.get(ing.rawMaterialId); if (m) return m; const r = recipesById.get(ing.rawMaterialId); return r ? { id: r.id, name: r.name, shortName: r.name, category: r.category, provider: '', sku: '', quantity: 0, unit: 'portion' as Unit, cost: 0 } as RawMaterial : undefined!; })(),
       })),
     };
     const updatedRecipes = [newRecipe, ...recipes];
@@ -109,6 +121,7 @@ export function useRecipes() {
   const updateRecipe = (id: string, updatedRecipeData: RecipeFormValues) => {
     const materials = getMaterials();
     const materialsById = new Map(materials.map(m => [m.id, m]));
+    const recipesById = new Map(recipes.map(r => [r.id, r]));
 
     const updatedRecipes = recipes.map(recipe => {
       if (recipe.id === id) {
@@ -119,7 +132,7 @@ export function useRecipes() {
             id: ing.id || `ing-${Date.now()}-${Math.random()}`, // create id for new ingredients
             quantity: ing.quantity,
             unit: ing.unit,
-            rawMaterial: materialsById.get(ing.rawMaterialId)!,
+            rawMaterial: (() => { const m = materialsById.get(ing.rawMaterialId); if (m) return m; const r = recipesById.get(ing.rawMaterialId); return r ? { id: r.id, name: r.name, shortName: r.name, category: r.category, provider: '', sku: '', quantity: 0, unit: 'portion' as Unit, cost: 0 } as RawMaterial : undefined!; })(),
           })),
         };
       }
