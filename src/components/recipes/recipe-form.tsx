@@ -372,8 +372,9 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                                                 tabIndex={5}
                                                 type="number"
                                                 placeholder="0.00"
-                                                step="1"
+                                                step="0.01"
                                                 {...field}
+                                                value={field.value ?? ''}
                                                 onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
                                                 className="pl-7"
                                             />
@@ -475,20 +476,20 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                                                         type="number"
                                                         placeholder="Qty"
                                                         min="0"
-                                                        step="any"
+                                                        step="0.25"
                                                         {...field}
                                                         onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
-                                                                                                              onKeyDown={e => {
-                                                                                                                                                                            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                                                                                                                                                                                                                                              e.preventDefault();
-                                                                                                                                                                                                                                              const inp = e.currentTarget as HTMLInputElement;
-                                                                                                                                                                                                                                              const cur = parseFloat(inp.value) || 0;
-                                                                                                                                                                                                                                              const dir = e.key === 'ArrowUp' ? 1 : -1;
-                                                                                                                                                                                                                                              const next = Math.max(0, cur + dir * 0.25);
-                                                                                                                                                                                                                                              const rounded = Math.round(next / 0.25) * 0.25;
-                                                                                                                                                                                                                                              field.onChange(parseFloat(rounded.toFixed(2)));
-                                                                                                                                                                                                                                          }
-                                                                                                                }}
+                                                        onKeyDown={e => {
+                                                            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                                                e.preventDefault();
+                                                                const inp = e.currentTarget as HTMLInputElement;
+                                                                const cur = parseFloat(inp.value) || 0;
+                                                                const dir = e.key === 'ArrowUp' ? 1 : -1;
+                                                                const next = Math.max(0, cur + dir * 0.25);
+                                                                const rounded = Math.round(next / 0.25) * 0.25;
+                                                                field.onChange(parseFloat(rounded.toFixed(2)));
+                                                            }
+                                                        }}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
