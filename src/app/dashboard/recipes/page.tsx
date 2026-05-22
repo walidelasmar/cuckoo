@@ -56,6 +56,10 @@ export default function RecipesPage() {
     return new Map(materials.map(m => [m.id, m]));
   }, [materials]);
 
+  const recipesById = useMemo(() => {
+    return new Map(recipes.map(r => [r.id, r]));
+  }, [recipes]);
+
   const handleEdit = (recipe: Recipe) => {
     setRecipeToEdit(recipe);
     setIsEditSheetOpen(true);
@@ -111,7 +115,7 @@ export default function RecipesPage() {
     if (!searchQuery.trim()) return recipes;
     const q = searchQuery.toLowerCase();
     return recipes.filter(recipe => {
-      const cost = calculateRecipeCost(recipe, materialsById);
+      const cost = calculateRecipeCost(recipe, materialsById, recipesById);
       const profitMargin = recipe.pricePerServing && recipe.pricePerServing > 0
         ? ((recipe.pricePerServing - cost.costPerPortion) / recipe.pricePerServing) * 100
         : 0;
@@ -124,7 +128,7 @@ export default function RecipesPage() {
         profitMargin.toFixed(1).includes(q)
       );
     });
-  }, [recipes, searchQuery, materialsById]);
+  }, [recipes, searchQuery, materialsById, recipesById]);
 
   if (isLoading || isLoadingMaterials) {
     return (
@@ -246,7 +250,7 @@ export default function RecipesPage() {
       {viewMode === 'card' ? (
         <div className="grid gap-4 md:gap-8 md:grid-cols-2 lg:grid-cols-3">
           {filteredRecipes.map((recipe) => {
-            const cost = calculateRecipeCost(recipe, materialsById);
+            const cost = calculateRecipeCost(recipe, materialsById, recipesById);
             const profitMargin = recipe.pricePerServing && recipe.pricePerServing > 0
               ? ((recipe.pricePerServing - cost.costPerPortion) / recipe.pricePerServing) * 100
               : 0;
@@ -311,7 +315,7 @@ export default function RecipesPage() {
             </thead>
             <tbody>
               {filteredRecipes.map((recipe) => {
-                const cost = calculateRecipeCost(recipe, materialsById);
+                const cost = calculateRecipeCost(recipe, materialsById, recipesById);
                 const profitMargin = recipe.pricePerServing && recipe.pricePerServing > 0
                   ? ((recipe.pricePerServing - cost.costPerPortion) / recipe.pricePerServing) * 100
                   : 0;
