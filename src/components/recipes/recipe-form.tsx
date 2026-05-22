@@ -370,12 +370,12 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                                             </div>
                                             <Input
                                                 tabIndex={5}
-                                                type="number"
+                                                type="text"
+                                                inputMode="decimal"
                                                 placeholder="0.00"
-                                                step="0.01"
                                                 {...field}
                                                 value={field.value ?? ''}
-                                                onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
+                                                onChange={event => field.onChange(event.target.value)}
                                                 className="pl-7"
                                             />
                                         </div>
@@ -473,12 +473,11 @@ export function RecipeForm({ initialData, rawMaterials, existingRecipes = [], ex
                                                 <FormLabel className="sr-only">Quantity</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        type="number"
+                                                        type="text"
+                                                        inputMode="decimal"
                                                         placeholder="Qty"
-                                                        min="0"
-                                                        step="0.25"
                                                         {...field}
-                                                        onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)}
+                                                        onChange={event => field.onChange(event.target.value)}
                                                         onKeyDown={e => {
                                                             if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                                                                 e.preventDefault();
