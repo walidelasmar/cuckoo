@@ -28,11 +28,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { RecipeForm } from '@/components/recipes/recipe-form';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
+import { useAuth } from '@/hooks/use-auth';
 import type { Recipe } from '@/lib/types';
 import type { RecipeFormValues } from '@/hooks/use-recipes';
 import { getList, RECIPE_CATEGORIES_KEY } from '@/lib/lists';
 
 export default function RecipesPage() {
+  const { currentUser } = useAuth();
+  const orgId = currentUser?.orgId || '';
   const { recipes, isLoading, addRecipe, updateRecipe, deleteRecipe } = useRecipes();
   const { materials, isLoading: isLoadingMaterials } = useRawMaterials();
   const { toast } = useToast();
@@ -187,7 +190,7 @@ export default function RecipesPage() {
                         initialData={recipeToEdit}
                         onSave={handleUpdateRecipe} 
                         rawMaterials={materials}
-                        existingCategories={getList(RECIPE_CATEGORIES_KEY)}
+                        existingCategories={getList(RECIPE_CATEGORIES_KEY, orgId)}
                         existingRecipes={recipes}
                         onCancel={() => setIsEditSheetOpen(false)}
                     />
@@ -239,7 +242,7 @@ export default function RecipesPage() {
                 <RecipeForm
                     onSave={handleAddNewRecipe}
                     rawMaterials={materials}
-                    existingCategories={getList(RECIPE_CATEGORIES_KEY)}
+                    existingCategories={getList(RECIPE_CATEGORIES_KEY, orgId)}
                     existingRecipes={recipes}
                     onCancel={() => setIsNewSheetOpen(false)}
                 />
