@@ -66,7 +66,7 @@ const appendAuditLog = (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => {
   } catch { /* silent */ }
 };
 
-// Email notification helpers â opens mailto: since no email backend exists in v1
+// Email notification helpers Ã¢ÂÂ opens mailto: since no email backend exists in v1
 export const sendAdminNotificationEmail = (subject: string, body: string): void => {
   try {
     const mailtoLink = `mailto:${SUPER_ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -94,7 +94,7 @@ const ensureSuperAdmin = (): void => {
         fullName: 'Super Admin',
         role: 'super_admin',
         orgId: null as unknown as string,
-        passwordHash: hashPassword('pmk.gwv5ABY-nhk4amj'),
+        passwordHash: hashPassword('4rYObYKJho3!lb'),
         isActive: true,
         status: 'active',
         createdAt: new Date().toISOString(),
@@ -281,7 +281,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const orgId = `org-${Date.now()}`;
     const userId = `usr-${Date.now()}`;
     const newOrg: Organization = { id: orgId, name: orgName, country, countryCode, address: orgAddress, preferredLanguage: 'en', currency: 'USD', createdAt: new Date().toISOString() };
-    // New registrations start as pending_approval â NOT logged in (2.a)
+    // New registrations start as pending_approval Ã¢ÂÂ NOT logged in (2.a)
     const newUser: User = {
       id: userId, email, fullName, role: 'org_admin', orgId,
       passwordHash: hashPassword(password),
