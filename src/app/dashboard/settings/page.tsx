@@ -1,17 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { validatePassword } from '@/contexts/auth-context';
+import { validatePassword, sendUserActivationEmail } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, Loader2, UserCircle, Building2, Lock, UserPlus, ShieldCheck } from 'lucide-react';
+import { AlertCircle, Loader2, UserCircle, Building2, Lock, UserPlus, ShieldCheck, Users } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
-import type { UserRole } from '@/lib/types';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import type { UserRole, UserStatus, User, Organization } from '@/lib/types';
 
 const COUNTRIES = [
   { name: 'United States', code: 'us' },
@@ -56,17 +58,32 @@ const COUNTRIES = [
   { name: 'Tunisia', code: 'tn' },
 ];
 
+const STATUS_BADGE: Record<UserStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  active:           { label: 'Active',           variant: 'default' },
+  approved:         { label: 'Approved',         variant: 'secondary' },
+  pending_approval: { label: 'Pending Approval', variant: 'outline' },
+  deactivated:      { label: 'Deactivated',      variant: 'destructive' },
+};
+
+function UserStatusBadge({ status }: { status: UserStatus | undefined }) {
+  const s = status || 'active';
+  const cfg = STATUS_BADGE[s] || STATUS_BADGE.active;
+  return <Badge variant={cfg.variant}>{cfg.label}</Badge>;
+}
+
 export default function SettingsPage() {
-  const { currentUser, currentOrg, updateProfile, updateOrgSettings, changePassword, createInvite, getAllOrgs, getAllUsers } = useAuth();
+  const { currentUser, currentOrg, updateProfile, updateOrgSettings, changePassword, createInvite, setUserStatus, getAllOrgs, getAllUsers } = useAuth();
   const { toast } = useToast();
 
   const isSuperAdmin = currentUser?.role === 'super_admin';
   const isOrgAdmin = currentUser?.role === 'org_admin';
   const isAdmin = isOrgAdmin || isSuperAdmin;
 
+  // Profile state
   const [fullName, setFullName] = useState(currentUser?.fullName || '');
   const [profileLoading, setProfileLoading] = useState(false);
 
+  // Org state
   const [orgName, setOrgName] = useState(currentOrg?.name || '');
   const [orgCountry, setOrgCountry] = useState(currentOrg?.country || '');
   const [orgCountryCode, setOrgCountryCode] = useState(currentOrg?.countryCode || '');
@@ -75,20 +92,29 @@ export default function SettingsPage() {
   const [orgLang, setOrgLang] = useState<'en' | 'es'>((currentOrg?.preferredLanguage as 'en' | 'es') || 'en');
   const [orgLoading, setOrgLoading] = useState(false);
 
+  // Password state
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
   const [pwError, setPwError] = useState('');
 
+  // Invite state
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<UserRole>('org_editor');
   const [inviteOrgId, setInviteOrgId] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
 
-  const allOrgs = isSuperAdmin ? getAllOrgs() : [];
-  const allUsers = isSuperAdmin ? getAllUsers() : [];
+  // Users list state (super admin only) — local copy to reflect toggle changes immediately
+  const [usersSnapshot, setUsersSnapshot] = useState<User[]>(() => isSuperAdmin ? getAllUsers() : []);
+  const [togglingUserId, setTogglingUserId] = useState<string | null>(null);
+
+  const allOrgs: Organization[] = isSuperAdmin ? getAllOrgs() : [];
+  const orgById = (id: string) => allOrgs.find(o => o.id === id);
+
+  // Exclude the super admin account itself from the users table
+  const managedUsers = usersSnapshot.filter(u => u.role !== 'super_admin');
 
   const handleCountryChange = (code: string) => {
     const found = COUNTRIES.find(c => c.code === code);
@@ -147,8 +173,44 @@ export default function SettingsPage() {
     }
   };
 
+  const handleUserToggle = useCallback(async (user: User, checked: boolean) => {
+    // Determine the new status based on current status and switch direction (1.b)
+    const currentStatus: UserStatus = user.status || (user.isActive ? 'active' : 'deactivated');
+    let newStatus: UserStatus;
+    if (checked) {
+      // Switch turned ON -> activate
+      newStatus = 'active';
+    } else {
+      // Switch turned OFF -> deactivate
+      newStatus = 'deactivated';
+    }
+    setTogglingUserId(user.id);
+    const result = await setUserStatus(user.id, newStatus);
+    setTogglingUserId(null);
+    if (result.error) {
+      toast({ variant: 'destructive', title: 'Error', description: result.error });
+    } else {
+      // Update local snapshot
+      setUsersSnapshot(prev => prev.map(u => u.id === user.id ? { ...u, status: newStatus, isActive: newStatus === 'active' } : u));
+      if (newStatus === 'active' && currentStatus === 'pending_approval') {
+        // Send activation email to user (2.c)
+        sendUserActivationEmail(user.email, user.fullName, window.location.origin);
+        toast({ title: 'Account activated', description: `${user.fullName} can now log in. An activation email will be sent.` });
+      } else if (newStatus === 'active') {
+        toast({ title: 'Account activated', description: `${user.fullName}'s account has been activated.` });
+      } else {
+        toast({ title: 'Account deactivated', description: `${user.fullName}'s account has been deactivated.` });
+      }
+    }
+  }, [setUserStatus, toast]);
+
+  const isSwitchOn = (status: UserStatus | undefined): boolean => {
+    const s = status || 'active';
+    return s === 'active' || s === 'approved';
+  };
+
   return (
-    <main className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-8 max-w-2xl">
+    <main className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-8 max-w-4xl">
       <div>
         <h1 className="font-headline text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your account and organization settings.</p>
@@ -166,21 +228,73 @@ export default function SettingsPage() {
               <p className="text-sm text-muted-foreground mt-1">Organizations</p>
             </div>
             <div className="rounded-md bg-muted p-4 text-center">
-              <p className="text-2xl font-bold">{allUsers.length}</p>
+              <p className="text-2xl font-bold">{managedUsers.length}</p>
               <p className="text-sm text-muted-foreground mt-1">Total Users</p>
             </div>
-            {allOrgs.length > 0 && (
-              <div className="col-span-2">
-                <p className="text-sm font-medium mb-2">Organizations:</p>
-                <ul className="space-y-1">
-                  {allOrgs.map(org => (
-                    <li key={org.id} className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Building2 className="h-3 w-3 shrink-0" />
-                      <span className="font-medium text-foreground">{org.name}</span>
-                      {org.country && <span className="text-xs">&mdash; {org.country}</span>}
-                    </li>
-                  ))}
-                </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {isSuperAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />User Management</CardTitle>
+            <CardDescription>Review and manage all user accounts. Toggle the switch to activate or deactivate a user.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {managedUsers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No users yet. Users will appear here after they submit account requests.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Full Name</th>
+                      <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Organization</th>
+                      <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Role</th>
+                      <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Status</th>
+                      <th className="text-left py-2 font-medium text-muted-foreground">Active</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {managedUsers.map(user => {
+                      const org = orgById(user.orgId);
+                      const status: UserStatus = user.status || (user.isActive ? 'active' : 'deactivated');
+                      const switchOn = isSwitchOn(user.status);
+                      const isToggling = togglingUserId === user.id;
+                      return (
+                        <tr key={user.id} className="border-b last:border-0 hover:bg-muted/40 transition-colors">
+                          <td className="py-3 pr-4">
+                            <div>
+                              <p className="font-medium">{user.fullName}</p>
+                              <p className="text-xs text-muted-foreground">{user.email}</p>
+                            </div>
+                          </td>
+                          <td className="py-3 pr-4 text-muted-foreground">
+                            {org?.name || <span className="italic text-xs">No org</span>}
+                          </td>
+                          <td className="py-3 pr-4">
+                            <span className="capitalize text-muted-foreground">{user.role.replace(/_/g, ' ')}</span>
+                          </td>
+                          <td className="py-3 pr-4">
+                            <UserStatusBadge status={status} />
+                          </td>
+                          <td className="py-3">
+                            {isToggling ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            ) : (
+                              <Switch
+                                checked={switchOn}
+                                onCheckedChange={(checked) => handleUserToggle(user, checked)}
+                                aria-label={`Toggle ${user.fullName}`}
+                              />
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </CardContent>
@@ -292,7 +406,7 @@ export default function SettingsPage() {
               {isSuperAdmin && (
                 <div className="grid gap-2">
                   <Label>Organization</Label>
-                  <Select value={inviteOrgId} onValueChange={setInviteOrgId} required>
+                  <Select value={inviteOrgId} onValueChange={setInviteOrgId}>
                     <SelectTrigger><SelectValue placeholder="Select an organization..." /></SelectTrigger>
                     <SelectContent>
                       {allOrgs.map(org => (
