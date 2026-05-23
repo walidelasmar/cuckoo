@@ -94,7 +94,7 @@ export type AuthContextType = {
   isLoading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<{ error?: string }>;
   logout: () => void;
-  registerOrg: (orgName: string, orgAddress: string, email: string, fullName: string, password: string) => Promise<{ error?: string }>;
+  registerOrg: (orgName: string, country: string, countryCode: string, orgAddress: string, email: string, fullName: string, password: string) => Promise<{ error?: string }>;
   acceptInvite: (token: string, fullName: string, password: string) => Promise<{ error?: string }>;
   getInvite: (token: string) => InviteToken | null;
   createInvite: (email: string, role: UserRole, orgId: string) => Promise<{ token?: string; error?: string }>;
@@ -200,17 +200,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCurrentOrg(null);
   }, [currentUser]);
 
-  const registerOrg = useCallback(async (orgName: string, orgAddress: string, email: string, fullName: string, password: string): Promise<{ error?: string }> => {
+  const registerOrg = useCallback(async (orgName: string, country: string, countryCode: string, orgAddress: string, email: string, fullName: string, password: string): Promise<{ error?: string }> => {
     const pwError = validatePassword(password);
     if (pwError) return { error: pwError };
     if (!orgName.trim()) return { error: 'Organization name is required.' };
+    if (!country.trim()) return { error: 'Country is required.' };
     const users = loadUsers();
     const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (existing) return { error: 'An account with this email already exists.' };
     const orgs = loadOrgs();
     const orgId = `org-${Date.now()}`;
     const userId = `usr-${Date.now()}`;
-    const newOrg: Organization = { id: orgId, name: orgName, address: orgAddress, preferredLanguage: 'en', currency: 'USD', createdAt: new Date().toISOString() };
+    const newOrg: Organization = { id: orgId, name: orgName, country, countryCode, address: orgAddress, preferredLanguage: 'en', currency: 'USD', createdAt: new Date().toISOString() };
     const newUser: User = { id: userId, email, fullName, role: 'org_admin', orgId, passwordHash: hashPassword(password), isActive: true, createdAt: new Date().toISOString(), failedLoginAttempts: 0 };
     saveOrgs([...orgs, newOrg]);
     saveUsers([...users, newUser]);
