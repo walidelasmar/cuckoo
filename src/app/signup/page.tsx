@@ -11,12 +11,59 @@ import { Logo } from '@/components/layout/logo';
 import { PlaceHolderImages } from '@/lib/images/placeholder-images';
 import { useAuth } from '@/hooks/use-auth';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const COUNTRIES = [
+  { name: 'United States', code: 'us' },
+  { name: 'United Kingdom', code: 'gb' },
+  { name: 'Canada', code: 'ca' },
+  { name: 'Australia', code: 'au' },
+  { name: 'France', code: 'fr' },
+  { name: 'Germany', code: 'de' },
+  { name: 'Spain', code: 'es' },
+  { name: 'Italy', code: 'it' },
+  { name: 'Portugal', code: 'pt' },
+  { name: 'Netherlands', code: 'nl' },
+  { name: 'Belgium', code: 'be' },
+  { name: 'Switzerland', code: 'ch' },
+  { name: 'Austria', code: 'at' },
+  { name: 'Sweden', code: 'se' },
+  { name: 'Norway', code: 'no' },
+  { name: 'Denmark', code: 'dk' },
+  { name: 'Finland', code: 'fi' },
+  { name: 'Poland', code: 'pl' },
+  { name: 'Brazil', code: 'br' },
+  { name: 'Mexico', code: 'mx' },
+  { name: 'Argentina', code: 'ar' },
+  { name: 'Chile', code: 'cl' },
+  { name: 'Colombia', code: 'co' },
+  { name: 'Japan', code: 'jp' },
+  { name: 'South Korea', code: 'kr' },
+  { name: 'China', code: 'cn' },
+  { name: 'India', code: 'in' },
+  { name: 'Singapore', code: 'sg' },
+  { name: 'United Arab Emirates', code: 'ae' },
+  { name: 'Saudi Arabia', code: 'sa' },
+  { name: 'South Africa', code: 'za' },
+  { name: 'Morocco', code: 'ma' },
+  { name: 'Egypt', code: 'eg' },
+  { name: 'New Zealand', code: 'nz' },
+  { name: 'Ireland', code: 'ie' },
+  { name: 'Greece', code: 'gr' },
+  { name: 'Turkey', code: 'tr' },
+  { name: 'Israel', code: 'il' },
+  { name: 'Lebanon', code: 'lb' },
+  { name: 'Tunisia', code: 'tn' },
+];
 
 export default function SignupPage() {
   const { registerOrg } = useAuth();
   const router = useRouter();
 
   const [orgName, setOrgName] = useState('');
+  const [country, setCountry] = useState('');
+  const [countryCode, setCountryCode] = useState('');
   const [orgAddress, setOrgAddress] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -26,11 +73,21 @@ export default function SignupPage() {
 
   const loginBg = PlaceHolderImages.find((img) => img.id === 'login-background');
 
+  const handleCountryChange = (code: string) => {
+    const found = COUNTRIES.find(c => c.code === code);
+    if (found) {
+      setCountryCode(found.code);
+      setCountry(found.name);
+      setOrgAddress('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!country) { setError('Please select a country.'); return; }
     setIsLoading(true);
-    const result = await registerOrg(orgName, orgAddress, email, fullName, password);
+    const result = await registerOrg(orgName, country, countryCode, orgAddress, email, fullName, password);
     setIsLoading(false);
     if (result.error) {
       setError(result.error);
@@ -66,8 +123,28 @@ export default function SignupPage() {
               <Input id="orgName" placeholder="The Good Food Place" required value={orgName} onChange={(e) => setOrgName(e.target.value)} />
             </div>
             <div className="grid gap-2">
+              <Label>Country</Label>
+              <Select value={countryCode} onValueChange={handleCountryChange} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a country..." />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {COUNTRIES.map(c => (
+                    <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="orgAddress">Organization Address</Label>
-              <Input id="orgAddress" placeholder="123 Main St, City, Country" value={orgAddress} onChange={(e) => setOrgAddress(e.target.value)} />
+              <AddressAutocomplete
+                id="orgAddress"
+                value={orgAddress}
+                onChange={setOrgAddress}
+                countryCode={countryCode}
+                placeholder={countryCode ? 'Start typing an address...' : 'Select a country first'}
+                disabled={!countryCode}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="fullName">Your Full Name</Label>
