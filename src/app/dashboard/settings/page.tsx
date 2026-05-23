@@ -1,27 +1,32 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth, validatePassword } from '@/contexts/auth-context';
+import { useAuth } from '@/hooks/use-auth';
+import { validatePassword } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, Loader2, UserCircle, Building2, Lock, UserPlus } from 'lucide-react';
+import { AlertCircle, Loader2, UserCircle, Building2, Lock, UserPlus, ShieldCheck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { UserRole } from '@/lib/types';
 
 export default function SettingsPage() {
-  const { currentUser, currentOrg, updateProfile, updateOrgSettings, changePassword, createInvite } = useAuth();
+  const { currentUser, currentOrg, updateProfile, updateOrgSettings, changePassword, createInvite, getAllOrgs, getAllUsers } = useAuth();
   const { toast } = useToast();
+
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+  const isOrgAdmin = currentUser?.role === 'org_admin';
+  const isAdmin = isOrgAdmin || isSuperAdmin;
 
   const [fullName, setFullName] = useState(currentUser?.fullName || '');
   const [profileLoading, setProfileLoading] = useState(false);
 
   const [orgName, setOrgName] = useState(currentOrg?.name || '');
   const [orgAddress, setOrgAddress] = useState(currentOrg?.address || '');
-  const [orgCurrency, setOrgCurrency] = useState<'USD' | 'EUR'>(currentOrg?.currency || 'USD');
-  const [orgLang, setOrgLang] = useState<'en' | 'es'>(currentOrg?.preferredLanguage || 'en');
+  const [orgCurrency, setOrgCurrency] = useState<'USD' | 'EUR'>((currentOrg?.currency as 'USD' | 'EUR') || 'USD');
+  const [orgLang, setOrgLang] = useState<'en' | 'es'>((currentOrg?.preferredLanguage as 'en' | 'es') || 'en');
   const [orgLoading, setOrgLoading] = useState(false);
 
   const [currentPw, setCurrentPw] = useState('');
@@ -32,10 +37,12 @@ export default function SettingsPage() {
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<UserRole>('org_editor');
+  const [inviteOrgId, setInviteOrgId] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
 
-  const isAdmin = currentUser?.role === 'org_admin' || currentUser?.role === 'super_admin';
+  const allOrgs = isSuperAdmin ? getAllOrgs() : [];
+  const allUsers = isSuperAdmin ? getAllUsers() : [];
 
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +79,8 @@ export default function SettingsPage() {
     e.preventDefault();
     setInviteLink('');
     setInviteLoading(true);
-    const result = await createInvite(inviteEmail, inviteRole, currentUser?.orgId || '');
+    const targetOrgId = isSuperAdmin ? inviteOrgId : (currentUser?.orgId || '');
+    const result = await createInvite(inviteEmail, inviteRole, targetOrgId);
     setInviteLoading(false);
     if (result.error) {
       toast({ variant: 'destructive', title: 'Error', description: result.error });
@@ -91,6 +99,39 @@ export default function SettingsPage() {
         <p className="text-muted-foreground mt-1">Manage your account and organization settings.</p>
       </div>
 
+      {isSuperAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5" />Platform Overview</CardTitle>
+            <CardDescription>Super Admin platform-level summary.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4">
+            <div className="rounded-md bg-muted p-4 text-center">
+              <p className="text-2xl font-bold">{allOrgs.length}</p>
+              <p className="text-sm text-muted-foreground mt-1">Organizations</p>
+            </div>
+            <div className="rounded-md bg-muted p-4 text-center">
+              <p className="text-2xl font-bold">{allUsers.length}</p>
+              <p className="text-sm text-muted-foreground mt-1">Total Users</p>
+            </div>
+            {allOrgs.length > 0 && (
+              <div className="col-span-2">
+                <p className="text-sm font-medium mb-2">Organizations:</p>
+                <ul className="space-y-1">
+                  {allOrgs.map(org => (
+                    <li key={org.id} className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Building2 className="h-3 w-3 shrink-0" />
+                      <span className="font-medium text-foreground">{org.name}</span>
+                      <span className="text-xs">— {org.address || 'No address'}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><UserCircle className="h-5 w-5" />Profile</CardTitle>
@@ -104,11 +145,11 @@ export default function SettingsPage() {
             </div>
             <div className="grid gap-2">
               <Label>Email</Label>
-              <Input value={currentUser?.email} readOnly className="bg-muted" />
+              <Input value={currentUser?.email || ''} readOnly className="bg-muted" />
             </div>
             <div className="grid gap-2">
               <Label>Role</Label>
-              <Input value={currentUser?.role?.replace(/_/g, ' ')} readOnly className="bg-muted capitalize" />
+              <Input value={currentUser?.role?.replace(/_/g, ' ') || ''} readOnly className="bg-muted capitalize" />
             </div>
             <Button type="submit" size="sm" disabled={profileLoading} className="w-fit">
               {profileLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Save Profile
@@ -117,7 +158,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {isAdmin && currentOrg && (
+      {isOrgAdmin && currentOrg && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Building2 className="h-5 w-5" />Organization</CardTitle>
@@ -167,10 +208,25 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><UserPlus className="h-5 w-5" />Invite User</CardTitle>
-            <CardDescription>Invite a new team member to your organization.</CardDescription>
+            <CardDescription>
+              {isSuperAdmin ? 'Invite a new Org Admin to an existing organization.' : 'Invite a new team member to your organization.'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleInvite} className="grid gap-4">
+              {isSuperAdmin && (
+                <div className="grid gap-2">
+                  <Label>Organization</Label>
+                  <Select value={inviteOrgId} onValueChange={setInviteOrgId} required>
+                    <SelectTrigger><SelectValue placeholder="Select an organization..." /></SelectTrigger>
+                    <SelectContent>
+                      {allOrgs.map(org => (
+                        <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="inviteEmail">Email Address</Label>
                 <Input id="inviteEmail" type="email" placeholder="colleague@example.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required />
@@ -185,7 +241,7 @@ export default function SettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" size="sm" disabled={inviteLoading} className="w-fit">
+              <Button type="submit" size="sm" disabled={inviteLoading || (isSuperAdmin && !inviteOrgId)} className="w-fit">
                 {inviteLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Send Invite
               </Button>
               {inviteLink && (
