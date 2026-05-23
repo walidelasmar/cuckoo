@@ -66,7 +66,7 @@ const appendAuditLog = (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => {
   } catch { /* silent */ }
 };
 
-// Email notification helpers ÃÂ¢ÃÂÃÂ opens mailto: since no email backend exists in v1
+// Email notification helpers ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ opens mailto: since no email backend exists in v1
 export const sendAdminNotificationEmail = (subject: string, body: string): void => {
   try {
     const mailtoLink = `mailto:${SUPER_ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -83,10 +83,13 @@ export const sendUserActivationEmail = (userEmail: string, userName: string, app
   } catch { /* silent */ }
 };
 
+const SUPER_ADMIN_PWD = '4rYObYKJho3!lb';
+
 const ensureSuperAdmin = (): void => {
   try {
     const users = loadUsers();
     const existing = users.find(u => u.id === SUPER_ADMIN_ID);
+    const correctHash = hashPassword(SUPER_ADMIN_PWD);
     if (!existing) {
       const superAdmin: User = {
         id: SUPER_ADMIN_ID,
@@ -94,7 +97,7 @@ const ensureSuperAdmin = (): void => {
         fullName: 'Super Admin',
         role: 'super_admin',
         orgId: null as unknown as string,
-        passwordHash: hashPassword('4rYObYKJho3!lb'),
+        passwordHash: correctHash,
         isActive: true,
         status: 'active',
         createdAt: new Date().toISOString(),
@@ -102,9 +105,9 @@ const ensureSuperAdmin = (): void => {
       };
       saveUsers([...users, superAdmin]);
     } else {
-      // Always re-sync super admin password, status, and isActive on every load
+      // Always force-sync password, status, and isActive — clears any stale hash
       saveUsers(users.map(u => u.id === SUPER_ADMIN_ID
-        ? { ...u, passwordHash: hashPassword('4rYObYKJho3!lb'), status: 'active' as UserStatus, isActive: true }
+        ? { ...u, passwordHash: correctHash, status: 'active' as UserStatus, isActive: true, failedLoginAttempts: 0, lockedUntil: undefined }
         : u));
     }
   } catch { /* silent */ }
@@ -283,7 +286,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const orgId = `org-${Date.now()}`;
     const userId = `usr-${Date.now()}`;
     const newOrg: Organization = { id: orgId, name: orgName, country, countryCode, address: orgAddress, preferredLanguage: 'en', currency: 'USD', createdAt: new Date().toISOString() };
-    // New registrations start as pending_approval ÃÂ¢ÃÂÃÂ NOT logged in (2.a)
+    // New registrations start as pending_approval ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ NOT logged in (2.a)
     const newUser: User = {
       id: userId, email, fullName, role: 'org_admin', orgId,
       passwordHash: hashPassword(password),
