@@ -10,7 +10,51 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { AlertCircle, Loader2, UserCircle, Building2, Lock, UserPlus, ShieldCheck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 import type { UserRole } from '@/lib/types';
+
+const COUNTRIES = [
+  { name: 'United States', code: 'us' },
+  { name: 'United Kingdom', code: 'gb' },
+  { name: 'Canada', code: 'ca' },
+  { name: 'Australia', code: 'au' },
+  { name: 'France', code: 'fr' },
+  { name: 'Germany', code: 'de' },
+  { name: 'Spain', code: 'es' },
+  { name: 'Italy', code: 'it' },
+  { name: 'Portugal', code: 'pt' },
+  { name: 'Netherlands', code: 'nl' },
+  { name: 'Belgium', code: 'be' },
+  { name: 'Switzerland', code: 'ch' },
+  { name: 'Austria', code: 'at' },
+  { name: 'Sweden', code: 'se' },
+  { name: 'Norway', code: 'no' },
+  { name: 'Denmark', code: 'dk' },
+  { name: 'Finland', code: 'fi' },
+  { name: 'Poland', code: 'pl' },
+  { name: 'Brazil', code: 'br' },
+  { name: 'Mexico', code: 'mx' },
+  { name: 'Argentina', code: 'ar' },
+  { name: 'Chile', code: 'cl' },
+  { name: 'Colombia', code: 'co' },
+  { name: 'Japan', code: 'jp' },
+  { name: 'South Korea', code: 'kr' },
+  { name: 'China', code: 'cn' },
+  { name: 'India', code: 'in' },
+  { name: 'Singapore', code: 'sg' },
+  { name: 'United Arab Emirates', code: 'ae' },
+  { name: 'Saudi Arabia', code: 'sa' },
+  { name: 'South Africa', code: 'za' },
+  { name: 'Morocco', code: 'ma' },
+  { name: 'Egypt', code: 'eg' },
+  { name: 'New Zealand', code: 'nz' },
+  { name: 'Ireland', code: 'ie' },
+  { name: 'Greece', code: 'gr' },
+  { name: 'Turkey', code: 'tr' },
+  { name: 'Israel', code: 'il' },
+  { name: 'Lebanon', code: 'lb' },
+  { name: 'Tunisia', code: 'tn' },
+];
 
 export default function SettingsPage() {
   const { currentUser, currentOrg, updateProfile, updateOrgSettings, changePassword, createInvite, getAllOrgs, getAllUsers } = useAuth();
@@ -24,6 +68,8 @@ export default function SettingsPage() {
   const [profileLoading, setProfileLoading] = useState(false);
 
   const [orgName, setOrgName] = useState(currentOrg?.name || '');
+  const [orgCountry, setOrgCountry] = useState(currentOrg?.country || '');
+  const [orgCountryCode, setOrgCountryCode] = useState(currentOrg?.countryCode || '');
   const [orgAddress, setOrgAddress] = useState(currentOrg?.address || '');
   const [orgCurrency, setOrgCurrency] = useState<'USD' | 'EUR'>((currentOrg?.currency as 'USD' | 'EUR') || 'USD');
   const [orgLang, setOrgLang] = useState<'en' | 'es'>((currentOrg?.preferredLanguage as 'en' | 'es') || 'en');
@@ -44,6 +90,15 @@ export default function SettingsPage() {
   const allOrgs = isSuperAdmin ? getAllOrgs() : [];
   const allUsers = isSuperAdmin ? getAllUsers() : [];
 
+  const handleCountryChange = (code: string) => {
+    const found = COUNTRIES.find(c => c.code === code);
+    if (found) {
+      setOrgCountryCode(found.code);
+      setOrgCountry(found.name);
+      setOrgAddress('');
+    }
+  };
+
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileLoading(true);
@@ -56,7 +111,7 @@ export default function SettingsPage() {
   const handleOrgSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setOrgLoading(true);
-    const result = await updateOrgSettings({ name: orgName, address: orgAddress, currency: orgCurrency, preferredLanguage: orgLang });
+    const result = await updateOrgSettings({ name: orgName, country: orgCountry, countryCode: orgCountryCode, address: orgAddress, currency: orgCurrency, preferredLanguage: orgLang });
     setOrgLoading(false);
     if (result.error) toast({ variant: 'destructive', title: 'Error', description: result.error });
     else toast({ title: 'Organization updated', description: 'Organization settings saved.' });
@@ -122,7 +177,7 @@ export default function SettingsPage() {
                     <li key={org.id} className="text-sm text-muted-foreground flex items-center gap-2">
                       <Building2 className="h-3 w-3 shrink-0" />
                       <span className="font-medium text-foreground">{org.name}</span>
-                      <span className="text-xs">— {org.address || 'No address'}</span>
+                      {org.country && <span className="text-xs">&mdash; {org.country}</span>}
                     </li>
                   ))}
                 </ul>
@@ -171,8 +226,28 @@ export default function SettingsPage() {
                 <Input id="settingsOrgName" value={orgName} onChange={(e) => setOrgName(e.target.value)} required />
               </div>
               <div className="grid gap-2">
+                <Label>Country</Label>
+                <Select value={orgCountryCode} onValueChange={handleCountryChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a country..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {COUNTRIES.map(c => (
+                      <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="settingsOrgAddress">Address</Label>
-                <Input id="settingsOrgAddress" value={orgAddress} onChange={(e) => setOrgAddress(e.target.value)} />
+                <AddressAutocomplete
+                  id="settingsOrgAddress"
+                  value={orgAddress}
+                  onChange={setOrgAddress}
+                  countryCode={orgCountryCode}
+                  placeholder={orgCountryCode ? 'Start typing an address...' : 'Select a country first'}
+                  disabled={!orgCountryCode}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
