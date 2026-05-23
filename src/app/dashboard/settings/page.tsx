@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { validatePassword, sendUserActivationEmail } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
@@ -106,8 +106,15 @@ export default function SettingsPage() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
 
-  // Users list state (super admin only) — local copy to reflect toggle changes immediately
-  const [usersSnapshot, setUsersSnapshot] = useState<User[]>(() => isSuperAdmin ? getAllUsers() : []);
+  // Users list state (super admin only) â local copy to reflect toggle changes immediately
+  const [usersSnapshot, setUsersSnapshot] = useState<User[]>([]);
+
+  // Always read fresh user list from localStorage when page mounts or super admin status is known
+  useEffect(() => {
+    if (isSuperAdmin) {
+      setUsersSnapshot(getAllUsers());
+    }
+  }, [isSuperAdmin, getAllUsers]);
   const [togglingUserId, setTogglingUserId] = useState<string | null>(null);
 
   const allOrgs: Organization[] = isSuperAdmin ? getAllOrgs() : [];
@@ -370,7 +377,7 @@ export default function SettingsPage() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                      <SelectItem value="EUR">EUR (â¬)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
