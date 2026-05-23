@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import type { User, Organization, Session, UserRole, InviteToken, AuditLogEntry } from '@/lib/types';
+import React, { createContext, useEffect, useState, useCallback } from 'react';
+import type { User, Organization, Session, UserRole, UserStatus, InviteToken, AuditLogEntry } from '@/lib/types';
 
 const USERS_KEY = 'auth_users';
 const ORGS_KEY = 'auth_organizations';
@@ -32,6 +32,8 @@ const IDLE_TIMEOUT_MS = 4 * 60 * 60 * 1000;
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 const INVITE_TTL_MS = 72 * 60 * 60 * 1000;
+export const SUPER_ADMIN_EMAIL = 'walid@bernoullifinance.com';
+const SUPER_ADMIN_ID = 'usr-superadmin';
 
 const loadUsers = (): User[] => {
   try { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); } catch { return []; }
@@ -64,8 +66,22 @@ const appendAuditLog = (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => {
   } catch { /* silent */ }
 };
 
-const SUPER_ADMIN_EMAIL = 'walid@bernoullifinance.com';
-const SUPER_ADMIN_ID = 'usr-superadmin';
+// Email notification helpers — opens mailto: since no email backend exists in v1
+export const sendAdminNotificationEmail = (subject: string, body: string): void => {
+  try {
+    const mailtoLink = `mailto:${SUPER_ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoLink, '_blank');
+  } catch { /* silent */ }
+};
+
+export const sendUserActivationEmail = (userEmail: string, userName: string, appUrl: string): void => {
+  try {
+    const subject = 'Your Cuckoo account has been activated';
+    const body = `Hi ${userName},\n\nYour Cuckoo account has been reviewed and activated. You can now log in at:\n${appUrl}\n\nWelcome aboard!\n\nThe Cuckoo Team`;
+    const mailtoLink = `mailto:${userEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoLink, '_blank');
+  } catch { /* silent */ }
+};
 
 const ensureSuperAdmin = (): void => {
   try {
@@ -80,10 +96,14 @@ const ensureSuperAdmin = (): void => {
         orgId: null as unknown as string,
         passwordHash: hashPassword('pmk.gwv5ABY-nhk4amj'),
         isActive: true,
+        status: 'active',
         createdAt: new Date().toISOString(),
         failedLoginAttempts: 0,
       };
       saveUsers([...users, superAdmin]);
+    } else if (!existing.status) {
+      // Migrate existing super admin if status field missing
+      saveUsers(users.map(u => u.id === SUPER_ADMIN_ID ? { ...u, status: 'active' as UserStatus } : u));
     }
   } catch { /* silent */ }
 };
@@ -101,12 +121,13 @@ export type AuthContextType = {
   updateProfile: (updates: Partial<Pick<User, 'fullName'>>) => Promise<{ error?: string }>;
   updateOrgSettings: (updates: Partial<Omit<Organization, 'id' | 'createdAt'>>) => Promise<{ error?: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ error?: string }>;
+  setUserStatus: (userId: string, status: UserStatus) => Promise<{ error?: string }>;
   getAuditLog: () => AuditLogEntry[];
   getAllOrgs: () => Organization[];
   getAllUsers: () => User[];
 };
 
-export const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = React.createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -154,7 +175,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       appendAuditLog({ event: 'failed_login_attempt', details: { email } });
       return { error: 'Invalid email or password.' };
     }
-    if (!user.isActive) return { error: 'Your account has been deactivated.' };
+    // Status-based access control
+    const userStatus = user.status || (user.isActive ? 'active' : 'deactivated');
+    if (userStatus === 'pending_approval') {
+      return { error: 'Your account is pending approval. You will receive an email once it is activated.' };
+    }
+    if (userStatus === 'deactivated' || !user.isActive) {
+      return { error: 'Your account has been deactivated. Please contact support.' };
+    }
     if (user.lockedUntil) {
       const lockedUntil = new Date(user.lockedUntil).getTime();
       if (Date.now() < lockedUntil) {
@@ -171,11 +199,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         appendAuditLog({ event: 'failed_login_attempt', userId: user.id, orgId: user.orgId, details: { email, attempts: newAttempts } });
       }
-      const updatedUsers = users.map(u => u.id === user.id ? { ...u, ...updates } : u);
-      saveUsers(updatedUsers);
+      saveUsers(users.map(u => u.id === user.id ? { ...u, ...updates } : u));
       return { error: 'Invalid email or password.' };
     }
-    const updatedUsers = users.map(u => u.id === user.id ? { ...u, failedLoginAttempts: 0, lockedUntil: undefined } : u);
+    // If approved, transition to active on first login (1.c)
+    const newStatus: UserStatus = userStatus === 'approved' ? 'active' : (userStatus as UserStatus);
+    const updatedUsers = users.map(u => u.id === user.id
+      ? { ...u, failedLoginAttempts: 0, lockedUntil: undefined, status: newStatus }
+      : u
+    );
     saveUsers(updatedUsers);
     const lifetime = rememberMe ? REMEMBER_ME_LIFETIME_MS : SESSION_LIFETIME_MS;
     const session: Session = {
@@ -187,7 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     saveSession(session);
     const orgs = loadOrgs();
     const org = orgs.find(o => o.id === user.orgId) || null;
-    setCurrentUser({ ...user, failedLoginAttempts: 0, lockedUntil: undefined });
+    setCurrentUser({ ...user, failedLoginAttempts: 0, lockedUntil: undefined, status: newStatus });
     setCurrentOrg(org);
     appendAuditLog({ event: 'successful_login', userId: user.id, orgId: user.orgId, details: {} });
     return {};
@@ -212,14 +244,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const orgId = `org-${Date.now()}`;
     const userId = `usr-${Date.now()}`;
     const newOrg: Organization = { id: orgId, name: orgName, country, countryCode, address: orgAddress, preferredLanguage: 'en', currency: 'USD', createdAt: new Date().toISOString() };
-    const newUser: User = { id: userId, email, fullName, role: 'org_admin', orgId, passwordHash: hashPassword(password), isActive: true, createdAt: new Date().toISOString(), failedLoginAttempts: 0 };
+    // New registrations start as pending_approval — NOT logged in (2.a)
+    const newUser: User = {
+      id: userId, email, fullName, role: 'org_admin', orgId,
+      passwordHash: hashPassword(password),
+      isActive: false,
+      status: 'pending_approval',
+      createdAt: new Date().toISOString(),
+      failedLoginAttempts: 0,
+    };
     saveOrgs([...orgs, newOrg]);
     saveUsers([...users, newUser]);
-    const session: Session = { userId, orgId, role: 'org_admin', createdAt: new Date().toISOString(), expiresAt: new Date(Date.now() + SESSION_LIFETIME_MS).toISOString(), rememberMe: false };
-    saveSession(session);
-    setCurrentUser(newUser);
-    setCurrentOrg(newOrg);
-    appendAuditLog({ event: 'user_account_created', userId, orgId, details: { email, orgName } });
+    appendAuditLog({ event: 'user_account_created', userId, orgId, details: { email, orgName, status: 'pending_approval' } });
     return {};
   }, []);
 
@@ -235,7 +271,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const existing = users.find(u => u.email.toLowerCase() === invite.email.toLowerCase());
     if (existing) return { error: 'An account with this email already exists.' };
     const userId = `usr-${Date.now()}`;
-    const newUser: User = { id: userId, email: invite.email, fullName, role: invite.role, orgId: invite.orgId, passwordHash: hashPassword(password), isActive: true, createdAt: new Date().toISOString(), failedLoginAttempts: 0 };
+    const newUser: User = {
+      id: userId, email: invite.email, fullName, role: invite.role, orgId: invite.orgId,
+      passwordHash: hashPassword(password),
+      isActive: true,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      failedLoginAttempts: 0,
+    };
     saveUsers([...users, newUser]);
     const updatedInvites = invites.map(i => i.token === token ? { ...i, accepted: true } : i);
     saveInvites(updatedInvites);
@@ -264,6 +307,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     saveInvites([...loadInvites(), invite]);
     appendAuditLog({ event: 'user_invited', userId: currentUser.id, orgId, details: { email, role } });
     return { token };
+  }, [currentUser]);
+
+  const setUserStatus = useCallback(async (userId: string, status: UserStatus): Promise<{ error?: string }> => {
+    if (!currentUser || currentUser.role !== 'super_admin') return { error: 'Insufficient permissions.' };
+    const users = loadUsers();
+    const target = users.find(u => u.id === userId);
+    if (!target) return { error: 'User not found.' };
+    const isActive = status === 'active' || status === 'approved';
+    const updatedUsers = users.map(u => u.id === userId ? { ...u, status, isActive } : u);
+    saveUsers(updatedUsers);
+    appendAuditLog({ event: status === 'active' ? 'user_activated' : 'user_deactivated', userId: currentUser.id, orgId: currentUser.orgId, details: { targetUserId: userId, newStatus: status } });
+    return {};
   }, [currentUser]);
 
   const updateProfile = useCallback(async (updates: Partial<Pick<User, 'fullName'>>): Promise<{ error?: string }> => {
@@ -306,7 +361,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const getAllUsers = useCallback((): User[] => loadUsers(), []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, currentOrg, isLoading, login, logout, registerOrg, acceptInvite, getInvite, createInvite, updateProfile, updateOrgSettings, changePassword, getAuditLog, getAllOrgs, getAllUsers }}>
+    <AuthContext.Provider value={{ currentUser, currentOrg, isLoading, login, logout, registerOrg, acceptInvite, getInvite, createInvite, updateProfile, updateOrgSettings, changePassword, setUserStatus, getAuditLog, getAllOrgs, getAllUsers }}>
       {children}
     </AuthContext.Provider>
   );
