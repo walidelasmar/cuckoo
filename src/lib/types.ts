@@ -45,6 +45,8 @@ export type Recipe = {
 
 export type UserRole = 'super_admin' | 'org_admin' | 'org_editor';
 
+export type UserStatus = 'pending_approval' | 'approved' | 'active' | 'deactivated';
+
 export type Organization = {
   id: string;
   name: string;
@@ -65,6 +67,7 @@ export type User = {
   orgId: string;
   passwordHash: string;
   isActive: boolean;
+  status: UserStatus;
   createdAt: string;
   failedLoginAttempts: number;
   lockedUntil?: string;
