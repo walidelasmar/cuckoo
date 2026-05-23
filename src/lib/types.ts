@@ -41,13 +41,15 @@ export type Recipe = {
   pricePerServing?: number;
 };
 
-// ─── Auth & Multi-tenant types ───────────────────────────────────────────────
+// ─── Auth & Multi-tenant types ────────────────────────────────────────────────
 
 export type UserRole = 'super_admin' | 'org_admin' | 'org_editor';
 
 export type Organization = {
   id: string;
   name: string;
+  country: string;
+  countryCode: string;
   address: string;
   preferredLanguage: 'en' | 'es';
   currency: 'USD' | 'EUR';
