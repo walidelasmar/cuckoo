@@ -1,12 +1,41 @@
+'use client';
+
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CookingPot, Carrot, DollarSign } from 'lucide-react';
+import { useRecipes } from '@/hooks/use-recipes';
+import { useRawMaterials } from '@/hooks/use-raw-materials';
+import { useAuth } from '@/hooks/use-auth';
+import { calculateRecipeCost } from '@/lib/utils';
 
 export default function DashboardPage() {
+  const { currentUser } = useAuth();
+  const { recipes } = useRecipes();
+  const { materials } = useRawMaterials();
+
+  const materialsById = useMemo(() => new Map(materials.map(m => [m.id, m])), [materials]);
+  const recipesById = useMemo(() => new Map(recipes.map(r => [r.id, r])), [recipes]);
+
+  const highestCostRecipe = useMemo(() => {
+    if (recipes.length === 0) return null;
+    return recipes.reduce((best, recipe) => {
+      const cost = calculateRecipeCost(recipe, materialsById, recipesById);
+      const bestCost = calculateRecipeCost(best, materialsById, recipesById);
+      return cost.costPerPortion > bestCost.costPerPortion ? recipe : best;
+    }, recipes[0]);
+  }, [recipes, materialsById, recipesById]);
+
+  const highestCost = highestCostRecipe
+    ? calculateRecipeCost(highestCostRecipe, materialsById, recipesById).costPerPortion
+    : 0;
+
+  const userName = currentUser?.fullName?.split(' ')[0] || 'Chef';
+
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
       <div className="grid gap-4">
         <h1 className="font-headline text-3xl font-bold tracking-tight">
-          Welcome, Chef!
+          Welcome, {userName}!
         </h1>
         <p className="text-muted-foreground">
           Here&apos;s a quick overview of your restaurant&apos;s profitability.
@@ -19,7 +48,7 @@ export default function DashboardPage() {
             <CookingPot className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2</div>
+            <div className="text-2xl font-bold">{recipes.length}</div>
             <p className="text-xs text-muted-foreground">
               Ready for costing and analysis
             </p>
@@ -33,7 +62,7 @@ export default function DashboardPage() {
             <Carrot className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">6</div>
+            <div className="text-2xl font-bold">{materials.length}</div>
             <p className="text-xs text-muted-foreground">
               Items in your inventory
             </p>
@@ -47,9 +76,13 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$10.38</div>
+            <div className="text-2xl font-bold">
+              {highestCostRecipe
+                ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(highestCost)
+                : '—'}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Simple Burger has the highest cost
+              {highestCostRecipe ? `${highestCostRecipe.name} has the highest cost` : 'No recipes yet'}
             </p>
           </CardContent>
         </Card>
@@ -76,7 +109,7 @@ export default function DashboardPage() {
                 <strong>Analyze Costs:</strong> As you build recipes, we&apos;ll automatically calculate the cost per recipe and per portion.
               </li>
             </ul>
-             <p>Use these insights to price your menu effectively and maximize your profits!</p>
+            <p>Use these insights to price your menu effectively and maximize your profits!</p>
           </CardContent>
         </Card>
       </div>
