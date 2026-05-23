@@ -2,13 +2,16 @@
 
 import MaterialsClient from '@/components/materials/client';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
+import { useAuth } from '@/hooks/use-auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getList, MATERIAL_PROVIDERS_KEY, MATERIAL_CATEGORIES_KEY } from '@/lib/lists';
 
 export default function RawMaterialsPage() {
+  const { currentUser } = useAuth();
+  const orgId = currentUser?.orgId || '';
   const { materials, isLoading, addMaterial, updateMaterial, deleteMaterial } = useRawMaterials();
 
-    const providers = getList(MATERIAL_PROVIDERS_KEY);
+  const providers = getList(MATERIAL_PROVIDERS_KEY, orgId);
 
   if (isLoading) {
     return (
@@ -47,7 +50,7 @@ export default function RawMaterialsPage() {
       <MaterialsClient 
         data={materials} 
         providers={providers}
-        categories={getList(MATERIAL_CATEGORIES_KEY)}
+        categories={getList(MATERIAL_CATEGORIES_KEY, orgId)}
         addMaterial={addMaterial}
         updateMaterial={updateMaterial}
         deleteMaterial={deleteMaterial}
