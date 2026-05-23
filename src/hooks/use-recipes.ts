@@ -83,12 +83,12 @@ export function useRecipes() {
         }).filter((i): i is Ingredient => i !== null && !!i.rawMaterial),
       }));
       setRecipes(resolvedRecipes);
-      syncRecipeLists(resolvedRecipes);
+      syncRecipeLists(resolvedRecipes, orgId);
 
     } catch (error) {
       console.error("Failed to access localStorage for recipes", error);
       setRecipes(initialRecipes);
-      syncRecipeLists(initialRecipes);
+      syncRecipeLists(initialRecipes, orgId);
     } finally {
         setIsLoading(false);
     }
@@ -125,7 +125,7 @@ export function useRecipes() {
     const updatedRecipes = [newRecipe, ...recipes];
     setRecipes(updatedRecipes);
     updateLocalStorage(updatedRecipes);
-    syncRecipeLists(updatedRecipes);
+    syncRecipeLists(updatedRecipes, orgId);
     return newRecipe;
   };
 
@@ -151,14 +151,14 @@ export function useRecipes() {
     });
     setRecipes(updatedRecipes);
     updateLocalStorage(updatedRecipes);
-    syncRecipeLists(updatedRecipes);
+    syncRecipeLists(updatedRecipes, orgId);
   };
 
   const deleteRecipe = (id: string) => {
     const updatedRecipes = recipes.filter((recipe) => recipe.id !== id);
     setRecipes(updatedRecipes);
     updateLocalStorage(updatedRecipes);
-    syncRecipeLists(updatedRecipes);
+    syncRecipeLists(updatedRecipes, orgId);
   };
   
   return { recipes, isLoading, addRecipe, updateRecipe, deleteRecipe };
