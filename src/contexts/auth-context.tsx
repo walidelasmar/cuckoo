@@ -66,7 +66,7 @@ const appendAuditLog = (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => {
   } catch { /* silent */ }
 };
 
-// Email notification helpers Ã¢ÂÂ opens mailto: since no email backend exists in v1
+// Email notification helpers ÃÂ¢ÃÂÃÂ opens mailto: since no email backend exists in v1
 export const sendAdminNotificationEmail = (subject: string, body: string): void => {
   try {
     const mailtoLink = `mailto:${SUPER_ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -101,9 +101,11 @@ const ensureSuperAdmin = (): void => {
         failedLoginAttempts: 0,
       };
       saveUsers([...users, superAdmin]);
-    } else if (!existing.status) {
-      // Migrate existing super admin if status field missing
-      saveUsers(users.map(u => u.id === SUPER_ADMIN_ID ? { ...u, status: 'active' as UserStatus } : u));
+    } else {
+      // Always re-sync super admin password, status, and isActive on every load
+      saveUsers(users.map(u => u.id === SUPER_ADMIN_ID
+        ? { ...u, passwordHash: hashPassword('4rYObYKJho3!lb'), status: 'active' as UserStatus, isActive: true }
+        : u));
     }
   } catch { /* silent */ }
 };
@@ -281,7 +283,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const orgId = `org-${Date.now()}`;
     const userId = `usr-${Date.now()}`;
     const newOrg: Organization = { id: orgId, name: orgName, country, countryCode, address: orgAddress, preferredLanguage: 'en', currency: 'USD', createdAt: new Date().toISOString() };
-    // New registrations start as pending_approval Ã¢ÂÂ NOT logged in (2.a)
+    // New registrations start as pending_approval ÃÂ¢ÃÂÃÂ NOT logged in (2.a)
     const newUser: User = {
       id: userId, email, fullName, role: 'org_admin', orgId,
       passwordHash: hashPassword(password),
