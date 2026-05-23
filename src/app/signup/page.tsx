@@ -10,9 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/layout/logo';
 import { PlaceHolderImages } from '@/lib/images/placeholder-images';
 import { useAuth } from '@/hooks/use-auth';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { sendAdminNotificationEmail, SUPER_ADMIN_EMAIL } from '@/contexts/auth-context';
+import { AlertCircle, Loader2, CheckCircle2, Mail } from 'lucide-react';
 import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const COUNTRIES = [
   { name: 'United States', code: 'us' },
@@ -70,6 +72,9 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [submittedName, setSubmittedName] = useState('');
+  const [submittedOrgName, setSubmittedOrgName] = useState('');
 
   const loginBg = PlaceHolderImages.find((img) => img.id === 'login-background');
 
@@ -92,88 +97,127 @@ export default function SignupPage() {
     if (result.error) {
       setError(result.error);
     } else {
-      router.push('/dashboard');
+      // Send email notification to super admin (2.b)
+      const appUrl = window.location.origin;
+      const subject = `New account request: ${orgName}`;
+      const body = `A new account has been requested.\n\nDetails:\n- Name: ${fullName}\n- Email: ${email}\n- Organization: ${orgName}\n- Country: ${country}\n- Address: ${orgAddress}\n\nTo review and activate this account, visit the Settings page:\n${appUrl}/dashboard/settings\n\nThis request is pending your approval.`;
+      sendAdminNotificationEmail(subject, body);
+      setSubmittedName(fullName);
+      setSubmittedOrgName(orgName);
+      setShowSuccess(true);
     }
   };
 
   return (
-    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[380px] gap-6">
-          <div className="grid gap-2 text-center">
-            <div className="flex justify-center">
-              <Logo />
+    <>
+      <Dialog open={showSuccess} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <div className="flex justify-center mb-2">
+              <div className="rounded-full bg-green-100 p-3">
+                <CheckCircle2 className="h-8 w-8 text-green-600" />
+              </div>
             </div>
-            <h1 className="text-3xl font-bold font-headline">Create Account</h1>
-            <p className="text-balance text-muted-foreground">
-              Set up your organization and admin account.
-            </p>
-          </div>
-
-          {error && (
-            <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="orgName">Organization Name</Label>
-              <Input id="orgName" placeholder="The Good Food Place" required value={orgName} onChange={(e) => setOrgName(e.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label>Country</Label>
-              <Select value={countryCode} onValueChange={handleCountryChange} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a country..." />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {COUNTRIES.map(c => (
-                    <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="orgAddress">Organization Address</Label>
-              <AddressAutocomplete
-                id="orgAddress"
-                value={orgAddress}
-                onChange={setOrgAddress}
-                countryCode={countryCode}
-                placeholder={countryCode ? 'Start typing an address...' : 'Select a country first'}
-                disabled={!countryCode}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="fullName">Your Full Name</Label>
-              <Input id="fullName" placeholder="Jane Smith" required value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" placeholder="Min. 8 chars, uppercase, number, special char" />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account...</> : 'Create Account'}
+            <DialogTitle className="text-center text-xl">Request Submitted!</DialogTitle>
+            <DialogDescription className="text-center space-y-3 pt-2">
+              <p>
+                Thank you, <span className="font-semibold text-foreground">{submittedName}</span>. Your account request for <span className="font-semibold text-foreground">{submittedOrgName}</span> has been successfully submitted.
+              </p>
+              <p>
+                Your information will be reviewed and you will receive an email at <span className="font-semibold text-foreground">{email}</span> once your account has been activated.
+              </p>
+              <div className="flex items-center justify-center gap-2 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+                <Mail className="h-4 w-4 shrink-0" />
+                <span>Check your inbox for activation confirmation</span>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center pt-2">
+            <Button onClick={() => router.push('/')} className="w-full sm:w-auto">
+              Back to Login
             </Button>
-          </form>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-          <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
-            <Link href="/" className="underline">Login</Link>
+      <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 xl:min-h-screen">
+        <div className="flex items-center justify-center py-12">
+          <div className="mx-auto grid w-[380px] gap-6">
+            <div className="grid gap-2 text-center">
+              <div className="flex justify-center">
+                <Logo />
+              </div>
+              <h1 className="text-3xl font-bold font-headline">Create Account</h1>
+              <p className="text-balance text-muted-foreground">
+                Set up your organization and admin account.
+              </p>
+            </div>
+
+            {error && (
+              <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="orgName">Organization Name</Label>
+                <Input id="orgName" placeholder="The Good Food Place" required value={orgName} onChange={(e) => setOrgName(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Country</Label>
+                <Select value={countryCode} onValueChange={handleCountryChange} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a country..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {COUNTRIES.map(c => (
+                      <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="orgAddress">Organization Address</Label>
+                <AddressAutocomplete
+                  id="orgAddress"
+                  value={orgAddress}
+                  onChange={setOrgAddress}
+                  countryCode={countryCode}
+                  placeholder={countryCode ? 'Start typing an address...' : 'Select a country first'}
+                  disabled={!countryCode}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="fullName">Your Full Name</Label>
+                <Input id="fullName" placeholder="Jane Smith" required value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" placeholder="Min. 8 chars, uppercase, number, special char" />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account...</> : 'Create Account'}
+              </Button>
+            </form>
+
+            <div className="mt-4 text-center text-sm">
+              Already have an account?{' '}
+              <Link href="/" className="underline">Login</Link>
+            </div>
           </div>
         </div>
+        <div className="hidden bg-muted lg:block">
+          {loginBg && (
+            <Image src={loginBg.imageUrl} alt={loginBg.description} width="1920" height="1080" data-ai-hint={loginBg.imageHint} className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale" />
+          )}
+        </div>
       </div>
-      <div className="hidden bg-muted lg:block">
-        {loginBg && (
-          <Image src={loginBg.imageUrl} alt={loginBg.description} width="1920" height="1080" data-ai-hint={loginBg.imageHint} className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale" />
-        )}
-      </div>
-    </div>
+    </>
   );
 }
