@@ -27,10 +27,10 @@ export function useRawMaterials() {
       if (storedItems) {
         const parsed: RawMaterial[] = JSON.parse(storedItems);
         setMaterials(parsed);
-        syncMaterialLists(parsed);
+        syncMaterialLists(parsed, orgId);
       } else {
         setMaterials(initialRawMaterials);
-        syncMaterialLists(initialRawMaterials);
+        syncMaterialLists(initialRawMaterials, orgId);
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialRawMaterials));
       }
     } catch {
@@ -52,7 +52,7 @@ export function useRawMaterials() {
     const updatedMaterials = [newMaterial, ...materials];
     setMaterials(updatedMaterials);
     updateLocalStorage(updatedMaterials);
-    syncMaterialLists(updatedMaterials);
+    syncMaterialLists(updatedMaterials, orgId);
     return newMaterial;
   };
 
@@ -62,14 +62,14 @@ export function useRawMaterials() {
     );
     setMaterials(updatedMaterials);
     updateLocalStorage(updatedMaterials);
-    syncMaterialLists(updatedMaterials);
+    syncMaterialLists(updatedMaterials, orgId);
   };
 
   const deleteMaterial = (id: string) => {
     const updatedMaterials = materials.filter((material) => material.id !== id);
     setMaterials(updatedMaterials);
     updateLocalStorage(updatedMaterials);
-    syncMaterialLists(updatedMaterials);
+    syncMaterialLists(updatedMaterials, orgId);
   };
 
   return { materials, isLoading, addMaterial, updateMaterial, deleteMaterial };
