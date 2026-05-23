@@ -66,7 +66,7 @@ const appendAuditLog = (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => {
   } catch { /* silent */ }
 };
 
-// Email notification helpers ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ opens mailto: since no email backend exists in v1
+// Email notification helpers ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ opens mailto: since no email backend exists in v1
 export const sendAdminNotificationEmail = (subject: string, body: string): void => {
   try {
     const mailtoLink = `mailto:${SUPER_ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -105,7 +105,7 @@ const ensureSuperAdmin = (): void => {
       };
       saveUsers([...users, superAdmin]);
     } else {
-      // Always force-sync password, status, and isActive — clears any stale hash
+      // Always force-sync password, status, and isActive â clears any stale hash
       saveUsers(users.map(u => u.id === SUPER_ADMIN_ID
         ? { ...u, passwordHash: correctHash, status: 'active' as UserStatus, isActive: true, failedLoginAttempts: 0, lockedUntil: undefined }
         : u));
@@ -113,39 +113,6 @@ const ensureSuperAdmin = (): void => {
   } catch { /* silent */ }
 };
 
-const clearNonAdminAccounts = (): void => {
-  try {
-    const CLEANUP_KEY = 'auth_cleanup_v1';
-    if (localStorage.getItem(CLEANUP_KEY)) return; // already ran
-    // Remove all users except super admin
-    const users = loadUsers();
-    const adminOnly = users.filter(u => u.id === SUPER_ADMIN_ID);
-    saveUsers(adminOnly);
-    // Remove all organizations
-    localStorage.removeItem(ORGS_KEY);
-    // Clear all sessions
-    localStorage.removeItem(SESSION_KEY);
-    // Clear invites
-    localStorage.removeItem(INVITES_KEY);
-    // Clear org-namespaced data
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (
-        key.startsWith('rawMaterials_') ||
-        key.startsWith('recipes_') ||
-        key.startsWith('materialCategories_') ||
-        key.startsWith('materialProviders_') ||
-        key.startsWith('recipeCategories_')
-      )) {
-        keysToRemove.push(key);
-      }
-    }
-    keysToRemove.forEach(k => localStorage.removeItem(k));
-    // Mark cleanup as done so it never runs again
-    localStorage.setItem(CLEANUP_KEY, '1');
-  } catch { /* silent */ }
-};
 
 
 
@@ -177,7 +144,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     ensureSuperAdmin();
-    clearNonAdminAccounts();
     const session = loadSession();
     if (!session) { setIsLoading(false); return; }
     const now = Date.now();
@@ -286,7 +252,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const orgId = `org-${Date.now()}`;
     const userId = `usr-${Date.now()}`;
     const newOrg: Organization = { id: orgId, name: orgName, country, countryCode, address: orgAddress, preferredLanguage: 'en', currency: 'USD', createdAt: new Date().toISOString() };
-    // New registrations start as pending_approval ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ NOT logged in (2.a)
+    // New registrations start as pending_approval ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ NOT logged in (2.a)
     const newUser: User = {
       id: userId, email, fullName, role: 'org_admin', orgId,
       passwordHash: hashPassword(password),
