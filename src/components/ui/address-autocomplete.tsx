@@ -62,7 +62,6 @@ export function AddressAutocomplete({
     try {
       const body: Record<string, unknown> = {
         input,
-        includedPrimaryTypes: ['address'],
         languageCode: 'en',
       };
       if (countryCode) {
