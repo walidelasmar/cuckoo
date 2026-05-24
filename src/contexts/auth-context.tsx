@@ -66,7 +66,7 @@ const appendAuditLog = (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => {
   } catch { /* silent */ }
 };
 
-// Email notification helpers ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ opens mailto: since no email backend exists in v1
+// Email notification helpers ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ opens mailto: since no email backend exists in v1
 export const sendAdminNotificationEmail = (subject: string, body: string): void => {
   try {
     const mailtoLink = `mailto:${SUPER_ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -105,7 +105,7 @@ const ensureSuperAdmin = (): void => {
       };
       saveUsers([...users, superAdmin]);
     } else {
-      // Always force-sync password, status, and isActive â clears any stale hash
+      // Always force-sync password, status, and isActive Ã¢ÂÂ clears any stale hash
       saveUsers(users.map(u => u.id === SUPER_ADMIN_ID
         ? { ...u, passwordHash: correctHash, status: 'active' as UserStatus, isActive: true, failedLoginAttempts: 0, lockedUntil: undefined }
         : u));
@@ -115,6 +115,32 @@ const ensureSuperAdmin = (): void => {
 
 
 
+
+const deleteAccountByEmail = (email: string): void => {
+  try {
+    const flagKey = 'auth_delete_' + btoa(email);
+    if (localStorage.getItem(flagKey)) return; // already ran
+    const users = loadUsers();
+    const target = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (target) {
+      // Remove user
+      saveUsers(users.filter(u => u.id !== target.id));
+      // Remove their org if they have one
+      if (target.orgId) {
+        const orgs = loadOrgs();
+        saveOrgs(orgs.filter(o => o.id !== target.orgId));
+        // Clear org-namespaced data
+        ['rawMaterials_', 'recipes_', 'materialCategories_', 'materialProviders_', 'recipeCategories_'].forEach(prefix => {
+          localStorage.removeItem(prefix + target.orgId);
+        });
+      }
+      // Clear session if it belongs to this user
+      const session = loadSession();
+      if (session && session.userId === target.id) saveSession(null);
+    }
+    localStorage.setItem(flagKey, '1');
+  } catch { /* silent */ }
+};
 
 export type AuthContextType = {
   currentUser: User | null;
@@ -144,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     ensureSuperAdmin();
+    deleteAccountByEmail('partners@laescala.eu');
     const session = loadSession();
     if (!session) { setIsLoading(false); return; }
     const now = Date.now();
@@ -252,7 +279,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const orgId = `org-${Date.now()}`;
     const userId = `usr-${Date.now()}`;
     const newOrg: Organization = { id: orgId, name: orgName, country, countryCode, address: orgAddress, preferredLanguage: 'en', currency: 'USD', createdAt: new Date().toISOString() };
-    // New registrations start as pending_approval ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ NOT logged in (2.a)
+    // New registrations start as pending_approval ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ NOT logged in (2.a)
     const newUser: User = {
       id: userId, email, fullName, role: 'org_admin', orgId,
       passwordHash: hashPassword(password),
