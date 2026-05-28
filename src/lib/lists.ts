@@ -1,59 +1,34 @@
 import type { RawMaterial } from '@/lib/types';
 import type { Recipe } from '@/lib/types';
+import { supabase } from '@/lib/supabase';
 
-// Base keys — always suffixed with _orgId when an org is known
 export const RECIPE_CATEGORIES_KEY = 'recipeCategories';
 export const MATERIAL_CATEGORIES_KEY = 'materialCategories';
 export const MATERIAL_PROVIDERS_KEY = 'materialProviders';
 
-/** Returns the org-scoped storage key, or the bare key for fallback/SSR. */
-export function listKey(base: string, orgId?: string): string {
-  return orgId ? `${base}_${orgId}` : base;
+export async function getList(key: string, orgId?: string): Promise<string[]> {
+  if (!orgId) return [];
+  const { data } = await supabase.from('org_lists').select('items').eq('org_id', orgId).eq('list_key', key).maybeSingle();
+  return (data?.items as string[]) || [];
 }
 
-/**
- * Reads a sorted, deduplicated string list from localStorage.
- * Pass orgId to read from the org-scoped key.
- */
-export function getList(key: string, orgId?: string): string[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const scopedKey = orgId ? `${key}_${orgId}` : key;
-    const raw = localStorage.getItem(scopedKey);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+export async function saveList(key: string, values: string[], orgId?: string): Promise<void> {
+  if (!orgId) return;
+  await supabase.from('org_lists').upsert({ org_id: orgId, list_key: key, items: values, updated_at: new Date().toISOString() }, { onConflict: 'org_id,list_key' });
 }
 
-/**
- * Writes a sorted, deduplicated string list to localStorage.
- */
-function saveList(key: string, values: string[], orgId?: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const scopedKey = orgId ? `${key}_${orgId}` : key;
-    const sorted = Array.from(new Set(values.filter(Boolean))).sort();
-    localStorage.setItem(scopedKey, JSON.stringify(sorted));
-  } catch {
-    // ignore
-  }
+export async function syncMaterialLists(materials: RawMaterial[], orgId?: string): Promise<void> {
+  if (!orgId) return;
+  const categories = [...new Set(materials.map(m => m.category).filter(Boolean))];
+  const providers = [...new Set(materials.map(m => m.provider).filter(Boolean))];
+  await Promise.all([
+    saveList(MATERIAL_CATEGORIES_KEY, categories, orgId),
+    saveList(MATERIAL_PROVIDERS_KEY, providers, orgId),
+  ]);
 }
 
-/**
- * Re-derives and saves materialCategories + materialProviders
- * from the current full list of raw materials.
- * Call this whenever materials are added, updated, or deleted.
- */
-export function syncMaterialLists(materials: RawMaterial[], orgId?: string): void {
-  saveList(MATERIAL_CATEGORIES_KEY, materials.map(m => m.category).filter(Boolean), orgId);
-  saveList(MATERIAL_PROVIDERS_KEY, materials.map(m => m.provider).filter(Boolean), orgId);
-}
-
-/**
- * Re-derives and saves recipeCategories from the current full list of recipes.
- * Call this whenever recipes are added, updated, or deleted.
- */
-export function syncRecipeLists(recipes: Pick<Recipe, 'category'>[], orgId?: string): void {
-  saveList(RECIPE_CATEGORIES_KEY, recipes.map(r => r.category).filter(Boolean), orgId);
+export async function syncRecipeLists(recipes: Recipe[], orgId?: string): Promise<void> {
+  if (!orgId) return;
+  const categories = [...new Set(recipes.map(r => r.category).filter(Boolean))];
+  await saveList(RECIPE_CATEGORIES_KEY, categories, orgId);
 }
