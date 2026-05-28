@@ -1,76 +1,51 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { RawMaterial } from '@/lib/types';
-import { rawMaterials as initialRawMaterials } from '@/lib/data';
+import { supabase } from '@/lib/supabase';
 import { syncMaterialLists } from '@/lib/lists';
 import { useAuth } from '@/hooks/use-auth';
 
-const getStorageKey = (orgId: string) => orgId ? `rawMaterials_${orgId}` : 'rawMaterials';
+const ORG_ROW_ID = (orgId: string) => `rm-${orgId}`;
 
 export function useRawMaterials() {
   const { currentUser } = useAuth();
   const orgId = currentUser?.orgId || '';
-  const LOCAL_STORAGE_KEY = getStorageKey(orgId);
 
   const [materials, setMaterials] = useState<RawMaterial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (!currentUser) {
-      setMaterials([]);
-      setIsLoading(false);
-      return;
-    }
-    try {
-      const storedItems = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (storedItems) {
-        const parsed: RawMaterial[] = JSON.parse(storedItems);
-        setMaterials(parsed);
-        syncMaterialLists(parsed, orgId);
-      } else {
-        setMaterials(initialRawMaterials);
-        syncMaterialLists(initialRawMaterials, orgId);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialRawMaterials));
-      }
-    } catch {
-      setMaterials(initialRawMaterials);
-    }
+  const loadMaterials = useCallback(async () => {
+    if (!orgId) { setMaterials([]); setIsLoading(false); return; }
+    setIsLoading(true);
+    const { data } = await supabase.from('raw_materials').select('data').eq('org_id', orgId).eq('id', ORG_ROW_ID(orgId)).maybeSingle();
+    setMaterials((data?.data as RawMaterial[]) || []);
     setIsLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [LOCAL_STORAGE_KEY, currentUser?.id]);
+  }, [orgId]);
 
-  const updateLocalStorage = (updatedMaterials: RawMaterial[]) => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedMaterials));
-  };
+  useEffect(() => { loadMaterials(); }, [loadMaterials]);
 
-  const addMaterial = (newMaterialData: Omit<RawMaterial, 'id'>): RawMaterial => {
-    const newMaterial: RawMaterial = {
-      ...newMaterialData,
-      id: `mat-${Date.now()}`,
-    };
-    const updatedMaterials = [newMaterial, ...materials];
-    setMaterials(updatedMaterials);
-    updateLocalStorage(updatedMaterials);
-    syncMaterialLists(updatedMaterials, orgId);
-    return newMaterial;
-  };
+  const saveMaterials = useCallback(async (updated: RawMaterial[]) => {
+    if (!orgId) return;
+    await supabase.from('raw_materials').upsert({ id: ORG_ROW_ID(orgId), org_id: orgId, data: updated, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+    setMaterials(updated);
+    await syncMaterialLists(updated, orgId);
+  }, [orgId]);
 
-  const updateMaterial = (id: string, updatedData: Partial<Omit<RawMaterial, 'id'>>) => {
-    const updatedMaterials = materials.map((material) =>
-      material.id === id ? { ...material, ...updatedData } : material
-    );
-    setMaterials(updatedMaterials);
-    updateLocalStorage(updatedMaterials);
-    syncMaterialLists(updatedMaterials, orgId);
-  };
+  const addMaterial = useCallback(async (material: RawMaterial) => {
+    const updated = [...materials, material];
+    await saveMaterials(updated);
+  }, [materials, saveMaterials]);
 
-  const deleteMaterial = (id: string) => {
-    const updatedMaterials = materials.filter((material) => material.id !== id);
-    setMaterials(updatedMaterials);
-    updateLocalStorage(updatedMaterials);
-    syncMaterialLists(updatedMaterials, orgId);
-  };
+  const updateMaterial = useCallback(async (id: string, updates: Partial<RawMaterial>) => {
+    const updated = materials.map(m => m.id === id ? { ...m, ...updates } : m);
+    await saveMaterials(updated);
+  }, [materials, saveMaterials]);
+
+  const deleteMaterial = useCallback(async (id: string) => {
+    const updated = materials.filter(m => m.id !== id);
+    await saveMaterials(updated);
+  }, [materials, saveMaterials]);
 
   return { materials, isLoading, addMaterial, updateMaterial, deleteMaterial };
 }
