@@ -1,165 +1,95 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Recipe, RawMaterial, Ingredient, Unit } from '@/lib/types';
-import { recipes as initialRecipes, rawMaterials as initialRawMaterials } from '@/lib/data';
+import type { Recipe, RawMaterial, Ingredient } from '@/lib/types';
+import { supabase } from '@/lib/supabase';
 import { syncRecipeLists } from '@/lib/lists';
 import { useAuth } from '@/hooks/use-auth';
 
-const getRecipesKey = (orgId: string) => orgId ? `recipes_${orgId}` : 'recipes';
-const getMaterialsKey = (orgId: string) => orgId ? `rawMaterials_${orgId}` : 'rawMaterials';
+const ORG_ROW_ID = (orgId: string) => `rec-${orgId}`;
+const MAT_ROW_ID = (orgId: string) => `rm-${orgId}`;
 
-type StorableIngredient = Omit<Ingredient, 'rawMaterial' | 'id'> & { id?: string, rawMaterialId: string };
-type StorableRecipe = Omit<Recipe, 'ingredients'> & {
-  ingredients: StorableIngredient[];
-}
+type StorableIngredient = Omit<Ingredient, 'rawMaterial' | 'id'> & { id?: string; rawMaterialId: string };
+type StorableRecipe = Omit<Recipe, 'ingredients'> & { ingredients: StorableIngredient[] };
+
 export type RecipeFormValues = Omit<Recipe, 'id' | 'ingredients'> & {
-  ingredients: (Omit<Ingredient, 'rawMaterial'> & { rawMaterialId: string })[]
+  ingredients: (Omit<Ingredient, 'rawMaterial'> & { rawMaterialId: string })[];
 };
 
 export function useRecipes() {
   const { currentUser } = useAuth();
   const orgId = currentUser?.orgId || '';
-  const RECIPES_STORAGE_KEY = getRecipesKey(orgId);
-  const MATERIALS_STORAGE_KEY = getMaterialsKey(orgId);
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const getMaterials = useCallback((): RawMaterial[] => {
-    try {
-      const storedMaterialsJSON = localStorage.getItem(MATERIALS_STORAGE_KEY);
-      return storedMaterialsJSON ? JSON.parse(storedMaterialsJSON) : initialRawMaterials;
-    } catch {
-      return initialRawMaterials;
-    }
-  }, [MATERIALS_STORAGE_KEY]);
+  const getMaterials = useCallback(async (): Promise<RawMaterial[]> => {
+    if (!orgId) return [];
+    const { data } = await supabase.from('raw_materials').select('data').eq('id', MAT_ROW_ID(orgId)).maybeSingle();
+    return (data?.data as RawMaterial[]) || [];
+  }, [orgId]);
 
-  useEffect(() => {
-    if (!currentUser) {
-      setRecipes([]);
-      setIsLoading(false);
-      return;
-    }
-    try {
-      const storedRecipesJSON = localStorage.getItem(RECIPES_STORAGE_KEY);
-      const materials = getMaterials();
-      const materialsById = new Map(materials.map(m => [m.id, m]));
-
-      let storableRecipes: StorableRecipe[];
-
-      if (storedRecipesJSON) {
-        storableRecipes = JSON.parse(storedRecipesJSON);
-      } else {
-        storableRecipes = initialRecipes.map(recipe => ({
-            ...recipe,
-            ingredients: recipe.ingredients.map(ing => ({
-                id: ing.id,
-                quantity: ing.quantity,
-                unit: ing.unit,
-                rawMaterialId: ing.rawMaterial.id,
-            }))
-        }));
-        localStorage.setItem(RECIPES_STORAGE_KEY, JSON.stringify(storableRecipes));
-      }
-
-      const hydratedRecipes: Recipe[] = storableRecipes.map(storableRecipe => ({
-        ...storableRecipe,
-        ingredients: storableRecipe.ingredients.map(storableIngredient => ({
-            ...storableIngredient,
-            id: storableIngredient.id || `ing-${Math.random()}`,
-            rawMaterial: materialsById.get(storableIngredient.rawMaterialId) as RawMaterial,
-        }))
-      }));
-      
-      const recipesById = new Map(hydratedRecipes.map(r => [r.id, r]));
-      const resolvedRecipes = hydratedRecipes.map(recipe => ({
-        ...recipe,
-        ingredients: recipe.ingredients.map(ing => {
-          if (ing.rawMaterial) return ing;
-          const refRecipe = recipesById.get((ing as any).rawMaterialId as string);
-          if (!refRecipe) return null;
-          return { ...ing, rawMaterial: { id: refRecipe.id, name: refRecipe.name, shortName: refRecipe.name, category: refRecipe.category, provider: '', sku: '', quantity: 0, unit: 'portion' as Unit, cost: 0 } as RawMaterial };
-        }).filter((i): i is Ingredient => i !== null && !!i.rawMaterial),
-      }));
-      setRecipes(resolvedRecipes);
-      syncRecipeLists(resolvedRecipes, orgId);
-
-    } catch (error) {
-      console.error("Failed to access localStorage for recipes", error);
-      setRecipes(initialRecipes);
-      syncRecipeLists(initialRecipes, orgId);
-    } finally {
-        setIsLoading(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getMaterials, RECIPES_STORAGE_KEY, currentUser?.id]);
-
-  const updateLocalStorage = (updatedRecipes: Recipe[]) => {
-    const storableRecipes: StorableRecipe[] = updatedRecipes.map(recipe => ({
-        ...recipe,
-        ingredients: recipe.ingredients.map(ing => ({
-            id: ing.id,
-            quantity: ing.quantity,
-            unit: ing.unit,
-            rawMaterialId: ing.rawMaterial.id,
-        }))
-    }));
-    localStorage.setItem(RECIPES_STORAGE_KEY, JSON.stringify(storableRecipes));
-  };
-  
-  const addRecipe = (newRecipeData: RecipeFormValues) => {
-    const materials = getMaterials();
-    const materialsById = new Map(materials.map(m => [m.id, m]));
-    const recipesById = new Map(recipes.map(r => [r.id, r]));
-
-    const newRecipe: Recipe = {
-      ...newRecipeData,
-      id: `rec-${Date.now()}`,
-      ingredients: newRecipeData.ingredients.map((ing, index) => ({
+  const hydrate = useCallback((storableRecipes: StorableRecipe[], materials: RawMaterial[]): Recipe[] => {
+    const byId = new Map(materials.map(m => [m.id, m]));
+    return storableRecipes.map(r => ({
+      ...r,
+      ingredients: r.ingredients.map(ing => ({
         ...ing,
-        id: `ing-${Date.now()}-${index}`,
-        rawMaterial: (() => { const m = materialsById.get(ing.rawMaterialId); if (m) return m; const r = recipesById.get(ing.rawMaterialId); return r ? { id: r.id, name: r.name, shortName: r.name, category: r.category, provider: '', sku: '', quantity: 0, unit: 'portion' as Unit, cost: 0 } as RawMaterial : undefined!; })(),
+        id: ing.id || `ing-${Math.random()}`,
+        rawMaterial: byId.get(ing.rawMaterialId) as RawMaterial,
       })),
+    }));
+  }, []);
+
+  const loadRecipes = useCallback(async () => {
+    if (!orgId) { setRecipes([]); setIsLoading(false); return; }
+    setIsLoading(true);
+    const [recRow, materials] = await Promise.all([
+      supabase.from('recipes').select('data').eq('id', ORG_ROW_ID(orgId)).maybeSingle(),
+      getMaterials(),
+    ]);
+    const storableRecipes: StorableRecipe[] = (recRow.data?.data as StorableRecipe[]) || [];
+    setRecipes(hydrate(storableRecipes, materials));
+    setIsLoading(false);
+  }, [orgId, getMaterials, hydrate]);
+
+  useEffect(() => { loadRecipes(); }, [loadRecipes]);
+
+  const saveRecipes = useCallback(async (updated: Recipe[]) => {
+    if (!orgId) return;
+    const storable: StorableRecipe[] = updated.map(r => ({
+      ...r,
+      ingredients: r.ingredients.map(ing => ({ id: ing.id, quantity: ing.quantity, unit: ing.unit, rawMaterialId: ing.rawMaterial?.id || '' })),
+    }));
+    await supabase.from('recipes').upsert({ id: ORG_ROW_ID(orgId), org_id: orgId, data: storable, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+    setRecipes(updated);
+    await syncRecipeLists(updated, orgId);
+  }, [orgId]);
+
+  const addRecipe = useCallback(async (values: RecipeFormValues) => {
+    const materials = await getMaterials();
+    const byId = new Map(materials.map(m => [m.id, m]));
+    const newRecipe: Recipe = {
+      ...values,
+      id: `recipe-${Date.now()}`,
+      ingredients: values.ingredients.map(ing => ({ ...ing, id: ing.id || `ing-${Math.random()}`, rawMaterial: byId.get(ing.rawMaterialId) as RawMaterial })),
     };
-    const updatedRecipes = [newRecipe, ...recipes];
-    setRecipes(updatedRecipes);
-    updateLocalStorage(updatedRecipes);
-    syncRecipeLists(updatedRecipes, orgId);
-    return newRecipe;
-  };
+    await saveRecipes([...recipes, newRecipe]);
+  }, [recipes, saveRecipes, getMaterials]);
 
-  const updateRecipe = (id: string, updatedRecipeData: RecipeFormValues) => {
-    const materials = getMaterials();
-    const materialsById = new Map(materials.map(m => [m.id, m]));
-    const recipesById = new Map(recipes.map(r => [r.id, r]));
+  const updateRecipe = useCallback(async (id: string, values: RecipeFormValues) => {
+    const materials = await getMaterials();
+    const byId = new Map(materials.map(m => [m.id, m]));
+    const updated = recipes.map(r => r.id === id ? {
+      ...r, ...values,
+      ingredients: values.ingredients.map(ing => ({ ...ing, id: ing.id || `ing-${Math.random()}`, rawMaterial: byId.get(ing.rawMaterialId) as RawMaterial })),
+    } : r);
+    await saveRecipes(updated);
+  }, [recipes, saveRecipes, getMaterials]);
 
-    const updatedRecipes = recipes.map(recipe => {
-      if (recipe.id === id) {
-        return {
-          ...recipe,
-          ...updatedRecipeData,
-          ingredients: updatedRecipeData.ingredients.map(ing => ({
-            id: ing.id || `ing-${Date.now()}-${Math.random()}`,
-            quantity: ing.quantity,
-            unit: ing.unit,
-            rawMaterial: (() => { const m = materialsById.get(ing.rawMaterialId); if (m) return m; const r = recipesById.get(ing.rawMaterialId); return r ? { id: r.id, name: r.name, shortName: r.name, category: r.category, provider: '', sku: '', quantity: 0, unit: 'portion' as Unit, cost: 0 } as RawMaterial : undefined!; })(),
-          })),
-        };
-      }
-      return recipe;
-    });
-    setRecipes(updatedRecipes);
-    updateLocalStorage(updatedRecipes);
-    syncRecipeLists(updatedRecipes, orgId);
-  };
+  const deleteRecipe = useCallback(async (id: string) => {
+    await saveRecipes(recipes.filter(r => r.id !== id));
+  }, [recipes, saveRecipes]);
 
-  const deleteRecipe = (id: string) => {
-    const updatedRecipes = recipes.filter((recipe) => recipe.id !== id);
-    setRecipes(updatedRecipes);
-    updateLocalStorage(updatedRecipes);
-    syncRecipeLists(updatedRecipes, orgId);
-  };
-  
   return { recipes, isLoading, addRecipe, updateRecipe, deleteRecipe };
 }
