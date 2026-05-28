@@ -1,5 +1,5 @@
 'use client';
-import { PlusCircle, Search, Upload } from 'lucide-react';
+import { PlusCircle, Search, Upload, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable } from './data-table';
@@ -9,6 +9,17 @@ import { MaterialForm } from './material-form';
 import { useRef, useState } from 'react';
 import type { RawMaterial, Unit } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface MaterialsClientProps {
   data: RawMaterial[];
@@ -20,6 +31,7 @@ interface MaterialsClientProps {
   addMaterials?: (batch: Omit<RawMaterial, 'id'>[]) => void;
   updateMaterial: (id: string, data: Partial<Omit<RawMaterial, 'id'>>) => void;
   deleteMaterial: (id: string) => void;
+  deleteAllMaterials?: () => void;
 }
 
 const VALID_UNITS: Unit[] = ['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'pc', 'portion'];
@@ -88,6 +100,7 @@ export default function MaterialsClient({
   addMaterials,
   updateMaterial,
   deleteMaterial,
+  deleteAllMaterials,
   isReadOnly = false,
   t,
 }: MaterialsClientProps) {
@@ -114,7 +127,6 @@ export default function MaterialsClient({
           description: 'No valid rows found. Make sure the file has a header row with at least a "name" column.',
         });
       } else {
-        // Use batch function to avoid stale-closure overwrite bug
         if (addMaterials) {
           addMaterials(parsed);
         } else {
@@ -128,6 +140,16 @@ export default function MaterialsClient({
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const handleDeleteAll = () => {
+    if (deleteAllMaterials) {
+      deleteAllMaterials();
+      toast({
+        title: 'All materials deleted',
+        description: 'Your materials list has been cleared.',
+      });
+    }
   };
 
   return (
@@ -161,6 +183,33 @@ export default function MaterialsClient({
               <Upload className="h-4 w-4" />
               {t?.uploadCSV ?? 'Upload CSV'}
             </Button>
+            {deleteAllMaterials && data.length > 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="destructive" className="gap-1">
+                    <Trash2 className="h-4 w-4" />
+                    Delete All
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete all materials?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete all {data.length} material{data.length !== 1 ? 's' : ''} from your list. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={handleDeleteAll}
+                    >
+                      Delete All
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button size="sm" className="gap-1">
