@@ -17,6 +17,7 @@ interface MaterialsClientProps {
   isReadOnly?: boolean;
   t?: { addMaterial: string; search: string; uploadCSV: string };
   addMaterial: (data: Omit<RawMaterial, 'id'>) => void;
+  addMaterials?: (batch: Omit<RawMaterial, 'id'>[]) => void;
   updateMaterial: (id: string, data: Partial<Omit<RawMaterial, 'id'>>) => void;
   deleteMaterial: (id: string) => void;
 }
@@ -37,14 +38,14 @@ function parseCSV(text: string): Omit<RawMaterial, 'id'>[] {
     return -1;
   };
 
-  const nameIdx      = colIdx(['name']);
+  const nameIdx = colIdx(['name']);
   const shortnameIdx = colIdx(['shortname', 'short']);
-  const categoryIdx  = colIdx(['category', 'cat']);
-  const providerIdx  = colIdx(['provider', 'supplier', 'vendor']);
-  const skuIdx       = colIdx(['sku', 'code', 'ref']);
-  const quantityIdx  = colIdx(['quantity', 'qty', 'amount']);
-  const unitIdx      = colIdx(['unit', 'uom']);
-  const costIdx      = colIdx(['cost', 'price', 'unitcost', 'unitprice']);
+  const categoryIdx = colIdx(['category', 'cat']);
+  const providerIdx = colIdx(['provider', 'supplier', 'vendor']);
+  const skuIdx = colIdx(['sku', 'code', 'ref']);
+  const quantityIdx = colIdx(['quantity', 'qty', 'amount']);
+  const unitIdx = colIdx(['unit', 'uom']);
+  const costIdx = colIdx(['cost', 'price', 'unitcost', 'unitprice']);
   const allergensIdx = colIdx(['allergens', 'allergen', 'allergy']);
 
   const results: Omit<RawMaterial, 'id'>[] = [];
@@ -79,7 +80,17 @@ function parseCSV(text: string): Omit<RawMaterial, 'id'>[] {
   return results;
 }
 
-export default function MaterialsClient({ data, providers, categories, addMaterial, updateMaterial, deleteMaterial, isReadOnly = false, t }: MaterialsClientProps) {
+export default function MaterialsClient({
+  data,
+  providers,
+  categories,
+  addMaterial,
+  addMaterials,
+  updateMaterial,
+  deleteMaterial,
+  isReadOnly = false,
+  t,
+}: MaterialsClientProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [globalFilter, setGlobalFilter] = useState('');
   const csvInputRef = useRef<HTMLInputElement>(null);
@@ -97,10 +108,22 @@ export default function MaterialsClient({ data, providers, categories, addMateri
       const text = evt.target?.result as string;
       const parsed = parseCSV(text);
       if (parsed.length === 0) {
-        toast({ variant: 'destructive', title: 'CSV Error', description: 'No valid rows found. Make sure the file has a header row with at least a "name" column.' });
+        toast({
+          variant: 'destructive',
+          title: 'CSV Error',
+          description: 'No valid rows found. Make sure the file has a header row with at least a "name" column.',
+        });
       } else {
-        parsed.forEach(m => addMaterial(m));
-        toast({ title: 'CSV Imported', description: `${parsed.length} material${parsed.length > 1 ? 's' : ''} added successfully.` });
+        // Use batch function to avoid stale-closure overwrite bug
+        if (addMaterials) {
+          addMaterials(parsed);
+        } else {
+          parsed.forEach(m => addMaterial(m));
+        }
+        toast({
+          title: 'CSV Imported',
+          description: `${parsed.length} material${parsed.length > 1 ? 's' : ''} added successfully.`,
+        });
       }
     };
     reader.readAsText(file);
@@ -113,58 +136,63 @@ export default function MaterialsClient({ data, providers, categories, addMateri
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search all fields..."
+            placeholder={t?.search ?? 'Search all fields...'}
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="pl-8"
           />
         </div>
-        <input
-          ref={csvInputRef}
-          type="file"
-          accept=".csv,text/csv"
-          className="hidden"
-          onChange={handleCSVUpload}
-        />
-        <Button
-          size="sm"
-          variant="outline"
-          className="gap-1"
-          onClick={() => csvInputRef.current?.click()}
-          title="Upload materials from CSV"
-        >
-          <Upload className="h-4 w-4" />
-          Upload CSV
-        </Button>
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetTrigger asChild>
+        {!isReadOnly && (
+          <>
+            <input
+              ref={csvInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={handleCSVUpload}
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              onClick={() => csvInputRef.current?.click()}
+              title="Upload materials from CSV"
+            >
+              <Upload className="h-4 w-4" />
+              {t?.uploadCSV ?? 'Upload CSV'}
+            </Button>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+              <SheetTrigger asChild>
                 <Button size="sm" className="gap-1">
-                    <PlusCircle className="h-4 w-4" />
-                    Add Material
+                  <PlusCircle className="h-4 w-4" />
+                  {t?.addMaterial ?? 'Add Material'}
                 </Button>
-            </SheetTrigger>
-            <SheetContent className="sm:max-w-2xl">
+              </SheetTrigger>
+              <SheetContent className="sm:max-w-2xl">
                 <SheetHeader>
-                    <SheetTitle>Add New Raw Material</SheetTitle>
+                  <SheetTitle>{t?.addMaterial ?? 'Add New Raw Material'}</SheetTitle>
                 </SheetHeader>
-                <MaterialForm 
-                    onSave={handleAdd} 
-                    onClose={() => setIsSheetOpen(false)} 
-                    providers={providers} 
-          categories={categories}
+                <MaterialForm
+                  onSave={handleAdd}
+                  onClose={() => setIsSheetOpen(false)}
+                  providers={providers}
+                  categories={categories}
                 />
-            </SheetContent>
-        </Sheet>
+              </SheetContent>
+            </Sheet>
+          </>
+        )}
       </div>
-      <DataTable 
-        columns={columns} 
-        data={data} 
+      <DataTable
+        columns={columns}
+        data={data}
         globalFilter={globalFilter}
+        setGlobalFilter={setGlobalFilter}
         meta={{
-            providers,
-            categories,
-            updateMaterial,
-            deleteMaterial,
+          providers,
+          categories,
+          updateMaterial,
+          deleteMaterial,
         }}
       />
     </>
