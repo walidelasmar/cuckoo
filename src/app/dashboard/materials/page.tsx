@@ -9,8 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getList, MATERIAL_PROVIDERS_KEY, MATERIAL_CATEGORIES_KEY } from '@/lib/lists';
 
 export default function RawMaterialsPage() {
-  const { isLoading, currentUser, isViewer } = useAuth();
-  const { materials, addMaterial, updateMaterial, deleteMaterial } = useRawMaterials();
+  const { isLoading: authLoading, currentUser, isViewer } = useAuth();
+  const { materials, isLoading, addMaterial, addMaterials, updateMaterial, deleteMaterial } = useRawMaterials();
   const { t } = useLanguage();
   const orgId = currentUser?.orgId;
 
@@ -18,36 +18,22 @@ export default function RawMaterialsPage() {
   const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
-    if (orgId) {
-      getList(MATERIAL_PROVIDERS_KEY, orgId).then(setProviders);
-      getList(MATERIAL_CATEGORIES_KEY, orgId).then(setCategories);
-    }
+    if (!orgId) return;
+    getList(MATERIAL_PROVIDERS_KEY, orgId).then(setProviders);
+    getList(MATERIAL_CATEGORIES_KEY, orgId).then(setCategories);
   }, [orgId]);
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-            <div className="flex items-center">
-                <div>
-                <h1 className="font-headline text-3xl font-bold tracking-tight">
-                    {t.materials.title}
-                </h1>
-                </div>
-            </div>
-            <div className="space-y-4">
-                <div className='flex justify-end'>
-                    <Skeleton className="h-9 w-32" />
-                </div>
-                <Skeleton className="h-10 w-80" />
-                <Skeleton className="h-64 w-full" />
-                <div className="flex justify-end space-x-2">
-                    <Skeleton className="h-9 w-24" />
-                    <Skeleton className="h-9 w-24" />
-                </div>
-            </div>
-        </main>
+      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-64 w-full" />
+      </main>
     );
   }
+
+  const noop = (_m: any) => {};
+  const noopId = (_id: string, _u?: any) => {};
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -62,9 +48,10 @@ export default function RawMaterialsPage() {
         data={materials}
         providers={providers}
         categories={categories}
-        addMaterial={isViewer ? (_m: any) => {} : addMaterial}
-        updateMaterial={isViewer ? (_id: string, _u: any) => {} : updateMaterial}
-        deleteMaterial={isViewer ? (_id: string) => {} : deleteMaterial}
+        addMaterial={isViewer ? noop : addMaterial}
+        addMaterials={isViewer ? undefined : addMaterials}
+        updateMaterial={isViewer ? noopId : updateMaterial}
+        deleteMaterial={isViewer ? noopId : deleteMaterial}
         isReadOnly={isViewer}
         t={t.materials}
       />
