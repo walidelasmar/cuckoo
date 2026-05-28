@@ -3,15 +3,15 @@
 import MaterialsClient from '@/components/materials/client';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
 import { useAuth } from '@/hooks/use-auth';
+import { useLanguage } from '@/contexts/language-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getList, MATERIAL_PROVIDERS_KEY, MATERIAL_CATEGORIES_KEY } from '@/lib/lists';
 
 export default function RawMaterialsPage() {
-  const { currentUser } = useAuth();
-  const orgId = currentUser?.orgId || '';
-  const { materials, isLoading, addMaterial, updateMaterial, deleteMaterial } = useRawMaterials();
-
-  const providers = getList(MATERIAL_PROVIDERS_KEY, orgId);
+  const { isLoading, currentUser, isViewer } = useAuth();
+  const { materials, providers, addMaterial, updateMaterial, deleteMaterial } = useRawMaterials();
+  const { t } = useLanguage();
+  const orgId = currentUser?.orgId;
 
   if (isLoading) {
     return (
@@ -19,7 +19,7 @@ export default function RawMaterialsPage() {
             <div className="flex items-center">
                 <div>
                 <h1 className="font-headline text-3xl font-bold tracking-tight">
-                    Raw Materials
+                    {t.materials.title}
                 </h1>
                 </div>
             </div>
@@ -43,7 +43,7 @@ export default function RawMaterialsPage() {
       <div className="flex items-center">
         <div>
           <h1 className="font-headline text-3xl font-bold tracking-tight">
-            Raw Materials
+            {t.materials.title}
           </h1>
         </div>
       </div>
@@ -51,9 +51,11 @@ export default function RawMaterialsPage() {
         data={materials} 
         providers={providers}
         categories={getList(MATERIAL_CATEGORIES_KEY, orgId)}
-        addMaterial={addMaterial}
-        updateMaterial={updateMaterial}
-        deleteMaterial={deleteMaterial}
+        addMaterial={isViewer ? () => {} : addMaterial}
+        updateMaterial={isViewer ? () => {} : updateMaterial}
+        deleteMaterial={isViewer ? () => {} : deleteMaterial}
+        isReadOnly={isViewer}
+        t={t.materials}
       />
     </main>
   );
