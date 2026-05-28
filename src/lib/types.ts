@@ -43,9 +43,9 @@ export type Recipe = {
 
 // ─── Auth & Multi-tenant types ────────────────────────────────────────────────
 
-export type UserRole = 'super_admin' | 'org_admin' | 'org_editor';
+export type UserRole = 'super_admin' | 'org_admin' | 'org_editor' | 'org_viewer';
 
-export type UserStatus = 'pending_approval' | 'approved' | 'active' | 'deactivated';
+export type UserStatus = 'active' | 'approved' | 'pending_approval' | 'deactivated';
 
 export type Organization = {
   id: string;
@@ -98,6 +98,5 @@ export type AuditLogEntry = {
   userId?: string;
   orgId?: string;
   details: Record<string, unknown>;
-  timestamp: string;
-  ipAddress?: string;
+  createdAt: string;
 };
