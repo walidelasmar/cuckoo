@@ -60,5 +60,9 @@ export function useRawMaterials() {
     await saveMaterials(updated);
   }, [saveMaterials]);
 
-  return { materials, isLoading, addMaterial, addMaterials, updateMaterial, deleteMaterial };
+  const deleteAllMaterials = useCallback(async () => {
+    await saveMaterials([]);
+  }, [saveMaterials]);
+
+  return { materials, isLoading, addMaterial, addMaterials, updateMaterial, deleteMaterial, deleteAllMaterials };
 }
