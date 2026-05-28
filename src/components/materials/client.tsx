@@ -14,6 +14,8 @@ interface MaterialsClientProps {
   data: RawMaterial[];
   providers: string[];
   categories: string[];
+  isReadOnly?: boolean;
+  t?: { addMaterial: string; search: string; uploadCSV: string };
   addMaterial: (data: Omit<RawMaterial, 'id'>) => void;
   updateMaterial: (id: string, data: Partial<Omit<RawMaterial, 'id'>>) => void;
   deleteMaterial: (id: string) => void;
@@ -77,7 +79,7 @@ function parseCSV(text: string): Omit<RawMaterial, 'id'>[] {
   return results;
 }
 
-export default function MaterialsClient({ data, providers, categories, addMaterial, updateMaterial, deleteMaterial }: MaterialsClientProps) {
+export default function MaterialsClient({ data, providers, categories, addMaterial, updateMaterial, deleteMaterial, isReadOnly = false, t }: MaterialsClientProps) {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [globalFilter, setGlobalFilter] = useState('');
   const csvInputRef = useRef<HTMLInputElement>(null);
