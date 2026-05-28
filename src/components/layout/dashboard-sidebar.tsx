@@ -22,11 +22,13 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
+import { useLanguage } from '@/contexts/language-context';
 
 export function DashboardSidebar() {
-  const pathname = usePathname();
   const { currentUser, currentOrg, logout } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleLogout = () => {
     logout();
@@ -38,10 +40,10 @@ export function DashboardSidebar() {
     : '?';
 
   const menuItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/recipes', label: 'Recipes', icon: CookingPot },
-    { href: '/dashboard/materials', label: 'Raw Materials', icon: Carrot },
-    { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    { href: '/dashboard', label: t.nav.dashboard, icon: LayoutDashboard },
+    { href: '/dashboard/recipes', label: t.nav.recipes, icon: CookingPot },
+    { href: '/dashboard/materials', label: t.nav.rawMaterials, icon: Carrot },
+    { href: '/dashboard/settings', label: t.nav.settings, icon: Settings },
   ];
 
   return (
@@ -87,9 +89,9 @@ export function DashboardSidebar() {
         </div>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Logout" onClick={handleLogout}>
+            <SidebarMenuButton tooltip={t.nav.logout} onClick={handleLogout}>
               <LogOut />
-              <span>Logout</span>
+              <span>{t.nav.logout}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
