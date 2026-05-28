@@ -106,18 +106,23 @@ export default function SettingsPage() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
 
-  // Users list state (super admin only) â local copy to reflect toggle changes immediately
+  // Users list state (super admin only) Ã¢ÂÂ local copy to reflect toggle changes immediately
   const [usersSnapshot, setUsersSnapshot] = useState<User[]>([]);
 
-  // Always read fresh user list from localStorage when page mounts or super admin status is known
+  // Always read fresh user list from Supabase when page mounts or super admin status is known
   useEffect(() => {
     if (isSuperAdmin) {
-      setUsersSnapshot(getAllUsers());
+      getAllUsers().then(users => setUsersSnapshot(users));
     }
   }, [isSuperAdmin, getAllUsers]);
   const [togglingUserId, setTogglingUserId] = useState<string | null>(null);
 
-  const allOrgs: Organization[] = isSuperAdmin ? getAllOrgs() : [];
+  const [allOrgs, setAllOrgs] = useState<Organization[]>([]);
+  useEffect(() => {
+    if (isSuperAdmin) {
+      getAllOrgs().then(orgs => setAllOrgs(orgs));
+    }
+  }, [isSuperAdmin, getAllOrgs]);
   const orgById = (id: string) => allOrgs.find(o => o.id === id);
 
   // Exclude the super admin account itself from the users table
@@ -377,7 +382,7 @@ export default function SettingsPage() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="EUR">EUR (â¬)</SelectItem>
+                      <SelectItem value="EUR">EUR (Ã¢ÂÂ¬)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
