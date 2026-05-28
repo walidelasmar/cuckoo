@@ -22,7 +22,7 @@ import type { RawMaterial } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { getList, MATERIAL_PROVIDERS_KEY, MATERIAL_CATEGORIES_KEY } from '@/lib/lists';
+
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -47,8 +47,8 @@ interface MaterialFormProps {
 }
 
 export function MaterialForm({ initialData, onClose, providers = [], categories = [], onSave }: MaterialFormProps) {
-    const effectiveProviders = Array.from(new Set([...providers, ...getList(MATERIAL_PROVIDERS_KEY)]));
-    const effectiveCategories = Array.from(new Set([...categories, ...getList(MATERIAL_CATEGORIES_KEY)]));
+    const effectiveProviders = providers;
+    const effectiveCategories = categories;
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const shortNameRef = useRef<HTMLInputElement>(null);
