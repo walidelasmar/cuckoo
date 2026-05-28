@@ -23,7 +23,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { RecipeForm } from '@/components/recipes/recipe-form';
@@ -37,6 +37,14 @@ import { getList, RECIPE_CATEGORIES_KEY } from '@/lib/lists';
 export default function RecipesPage() {
   const { currentUser , isViewer} = useAuth();
   const { t } = useLanguage();
+  const [recipeCategories, setRecipeCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (orgId) {
+      recipeCategories.then(setRecipeCategories);
+    }
+  }, [orgId]);
+
   const orgId = currentUser?.orgId || '';
   const { recipes, isLoading, addRecipe, updateRecipe, deleteRecipe } = useRecipes();
   const { materials, isLoading: isLoadingMaterials } = useRawMaterials();
@@ -192,7 +200,7 @@ export default function RecipesPage() {
                         initialData={recipeToEdit}
                         onSave={handleUpdateRecipe} 
                         rawMaterials={materials}
-                        existingCategories={getList(RECIPE_CATEGORIES_KEY, orgId)}
+                        existingCategories={recipeCategories}
                         existingRecipes={recipes}
                         onCancel={() => setIsEditSheetOpen(false)}
                     />
@@ -244,7 +252,7 @@ export default function RecipesPage() {
                 <RecipeForm
                     onSave={handleAddNewRecipe}
                     rawMaterials={materials}
-                    existingCategories={getList(RECIPE_CATEGORIES_KEY, orgId)}
+                    existingCategories={recipeCategories}
                     existingRecipes={recipes}
                     onCancel={() => setIsNewSheetOpen(false)}
                 />
