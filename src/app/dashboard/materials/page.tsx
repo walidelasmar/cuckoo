@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import MaterialsClient from '@/components/materials/client';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
 import { useAuth } from '@/hooks/use-auth';
@@ -9,9 +10,19 @@ import { getList, MATERIAL_PROVIDERS_KEY, MATERIAL_CATEGORIES_KEY } from '@/lib/
 
 export default function RawMaterialsPage() {
   const { isLoading, currentUser, isViewer } = useAuth();
-  const { materials, providers, addMaterial, updateMaterial, deleteMaterial } = useRawMaterials();
+  const { materials, addMaterial, updateMaterial, deleteMaterial } = useRawMaterials();
   const { t } = useLanguage();
   const orgId = currentUser?.orgId;
+
+  const [providers, setProviders] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (orgId) {
+      getList(MATERIAL_PROVIDERS_KEY, orgId).then(setProviders);
+      getList(MATERIAL_CATEGORIES_KEY, orgId).then(setCategories);
+    }
+  }, [orgId]);
 
   if (isLoading) {
     return (
@@ -47,10 +58,10 @@ export default function RawMaterialsPage() {
           </h1>
         </div>
       </div>
-      <MaterialsClient 
-        data={materials} 
+      <MaterialsClient
+        data={materials}
         providers={providers}
-        categories={getList(MATERIAL_CATEGORIES_KEY, orgId)}
+        categories={categories}
         addMaterial={isViewer ? () => {} : addMaterial}
         updateMaterial={isViewer ? () => {} : updateMaterial}
         deleteMaterial={isViewer ? () => {} : deleteMaterial}
