@@ -35,27 +35,29 @@ import type { RecipeFormValues } from '@/hooks/use-recipes';
 import { getList, RECIPE_CATEGORIES_KEY } from '@/lib/lists';
 
 export default function RecipesPage() {
-  const { currentUser , isViewer} = useAuth();
+  const { currentUser, isViewer } = useAuth();
   const { t } = useLanguage();
   const [recipeCategories, setRecipeCategories] = useState<string[]>([]);
+
+  const orgId = currentUser?.orgId;
+
+  const { recipes, addRecipe, updateRecipe, deleteRecipe, isLoading, recipesById } = useRecipes();
+  const { materials, isLoading: isLoadingMaterials } = useRawMaterials();
+  const { toast } = useToast();
+
+  const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isNewSheetOpen, setIsNewSheetOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (orgId) {
       getList(RECIPE_CATEGORIES_KEY, orgId).then(setRecipeCategories);
     }
   }, [orgId]);
-
-  const orgId = currentUser?.orgId || '';
-  const { recipes, isLoading, addRecipe, updateRecipe, deleteRecipe } = useRecipes();
-  const { materials, isLoading: isLoadingMaterials } = useRawMaterials();
-  const { toast } = useToast();
-  const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
-  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
-  const [isNewSheetOpen, setIsNewSheetOpen] = useState(false);
-  const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const [searchQuery, setSearchQuery] = useState('');
 
   const dependentRecipes = useMemo(() => {
     if (!recipeToDelete) return [];
@@ -68,10 +70,6 @@ export default function RecipesPage() {
   const materialsById = useMemo(() => {
     return new Map(materials.map(m => [m.id, m]));
   }, [materials]);
-
-  const recipesById = useMemo(() => {
-    return new Map(recipes.map(r => [r.id, r]));
-  }, [recipes]);
 
   const handleEdit = (recipe: Recipe) => {
     setRecipeToEdit(recipe);
@@ -91,10 +89,9 @@ export default function RecipesPage() {
 
   const handleDelete = async () => {
     if (!recipeToDelete) return;
-    
     setIsDeleting(true);
     try {
-      const recipeName = recipes.find(r => r.id === recipeToDelete)?.name || 'Recipe';
+      const recipeName = recipes.find(r => r.id === recipeToDelete)?.name ?? 'Recipe';
       for (const dep of dependentRecipes) {
         const cleaned = dep.ingredients.filter(ing => ing.rawMaterial.id !== recipeToDelete);
         updateRecipe(dep.id, {
@@ -107,22 +104,22 @@ export default function RecipesPage() {
           })),
         });
       }
-        deleteRecipe(recipeToDelete);
-        toast({
-            title: "Recipe Deleted",
-            description: `The recipe "${recipeName}" has been deleted.`,
-        });
-    } catch (error) {
-        toast({
-            variant: 'destructive',
-            title: 'Uh oh! Something went wrong.',
-            description: 'There was a problem with your request.',
-        });
+      deleteRecipe(recipeToDelete);
+      toast({
+        title: "Recipe Deleted",
+        description: `The recipe "${recipeName}" has been deleted.`,
+      });
+    } catch {
+      toast({
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
+        description: 'There was a problem with your request.',
+      });
     } finally {
-        setIsDeleting(false);
-        setRecipeToDelete(null);
+      setIsDeleting(false);
+      setRecipeToDelete(null);
     }
-  }
+  };
 
   const filteredRecipes = useMemo(() => {
     if (!searchQuery.trim()) return recipes;
@@ -149,7 +146,7 @@ export default function RecipesPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="font-headline text-3xl font-bold tracking-tight">
-                        Recipes
+                        {t.recipes.title}
                     </h1>
                 </div>
                 <Skeleton className="h-9 w-32" />
@@ -161,10 +158,9 @@ export default function RecipesPage() {
     );
   }
 
-
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <AlertDialog open={!!recipeToDelete} onOpenChange={(open) => !open && setRecipeToDelete(null)}>
+        <AlertDialog open={recipeToDelete !== null} onOpenChange={(open) => !open && setRecipeToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>
@@ -196,9 +192,9 @@ export default function RecipesPage() {
                     <SheetTitle className="text-[#6B7280]">Edit Recipe</SheetTitle>
                 </SheetHeader>
                 {recipeToEdit && (
-                    <RecipeForm 
+                    <RecipeForm
                         initialData={recipeToEdit}
-                        onSave={handleUpdateRecipe} 
+                        onSave={handleUpdateRecipe}
                         rawMaterials={materials}
                         existingCategories={recipeCategories}
                         existingRecipes={recipes}
@@ -242,7 +238,7 @@ export default function RecipesPage() {
             <SheetTrigger asChild>
                 <Button size="sm" className="gap-1" disabled={isViewer}>
                     <PlusCircle className="h-4 w-4" />
-                    New Recipe
+                    {t.recipes.addRecipe}
                 </Button>
             </SheetTrigger>
             <SheetContent className="sm:max-w-2xl">
@@ -294,7 +290,7 @@ export default function RecipesPage() {
                 <CardFooter className="flex-col items-start">
                    <div className="flex-grow w-full"></div>
                   <div className="flex items-center space-x-1 ml-auto">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(recipe)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(recipe)} disabled={isViewer}>
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Edit</span>
                     </Button>
@@ -303,6 +299,7 @@ export default function RecipesPage() {
                       size="icon"
                       className="h-8 w-8 text-destructive hover:text-destructive"
                       onClick={() => setRecipeToDelete(recipe.id)}
+                      disabled={isViewer}
                     >
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">Delete</span>
@@ -345,7 +342,7 @@ export default function RecipesPage() {
                     <td className="p-3 text-right">{profitMargin.toFixed(1)}%</td>
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end space-x-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(recipe)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(recipe)} disabled={isViewer}>
                           <Edit className="h-4 w-4" />
                           <span className="sr-only">Edit</span>
                         </Button>
@@ -354,6 +351,7 @@ export default function RecipesPage() {
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() => setRecipeToDelete(recipe.id)}
+                          disabled={isViewer}
                         >
                           <Trash2 className="h-4 w-4" />
                           <span className="sr-only">Delete</span>
