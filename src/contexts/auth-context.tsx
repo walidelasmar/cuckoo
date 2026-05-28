@@ -110,6 +110,11 @@ export type AuthContextType = {
   getAuditLog: () => Promise<AuditLogEntry[]>;
   getAllOrgs: () => Promise<Organization[]>;
   getAllUsers: () => Promise<User[]>;
+  updateUserByAdmin: (userId: string, updates: { fullName?: string; email?: string; role?: UserRole; status?: UserStatus }) => Promise<{ error?: string }>;
+  isSuperAdmin: boolean;
+  isOrgAdmin: boolean;
+  isAdmin: boolean;
+  isViewer: boolean;
 };
 
 export const AuthContext = React.createContext<AuthContextType | null>(null);
@@ -344,8 +349,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (data || []).map(rowToUser);
   }, []);
 
+  const updateUserByAdmin = useCallback(async (userId: string, updates: { fullName?: string; email?: string; role?: UserRole; status?: UserStatus }): Promise<{ error?: string }> => {
+    if (!currentUser) return { error: 'Not authenticated.' };
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.fullName !== undefined) dbUpdates.full_name = updates.fullName;
+    if (updates.email !== undefined) dbUpdates.email = updates.email.toLowerCase();
+    if (updates.role !== undefined) dbUpdates.role = updates.role;
+    if (updates.status !== undefined) {
+      dbUpdates.status = updates.status;
+      dbUpdates.is_active = updates.status === 'active' || updates.status === 'approved';
+    }
+    await supabase.from('users').update(dbUpdates).eq('id', userId);
+    return {};
+  }, [currentUser]);
+
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+  const isOrgAdmin = currentUser?.role === 'org_admin';
+  const isAdmin = isSuperAdmin || isOrgAdmin;
+  const isViewer = currentUser?.role === 'org_viewer';
+
   return (
-    <AuthContext.Provider value={{ currentUser, currentOrg, isLoading, login, logout, registerOrg, acceptInvite, getInvite, createInvite, updateProfile, updateOrgSettings, changePassword, setUserStatus, getAuditLog, getAllOrgs, getAllUsers }}>
+    <AuthContext.Provider value={{ currentUser, currentOrg, isLoading, login, logout, registerOrg, acceptInvite, getInvite, createInvite, updateProfile, updateOrgSettings, changePassword, setUserStatus, getAuditLog, getAllOrgs, getAllUsers, updateUserByAdmin, isSuperAdmin, isOrgAdmin, isAdmin, isViewer }}>
       {children}
     </AuthContext.Provider>
   );
