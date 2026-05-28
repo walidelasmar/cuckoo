@@ -41,7 +41,7 @@ export default function RecipesPage() {
 
   useEffect(() => {
     if (orgId) {
-      recipeCategories.then(setRecipeCategories);
+      getList(RECIPE_CATEGORIES_KEY, orgId).then(setRecipeCategories);
     }
   }, [orgId]);
 
