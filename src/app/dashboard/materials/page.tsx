@@ -10,7 +10,7 @@ import { getList, MATERIAL_PROVIDERS_KEY, MATERIAL_CATEGORIES_KEY } from '@/lib/
 
 export default function RawMaterialsPage() {
   const { isLoading: authLoading, currentUser, isViewer } = useAuth();
-  const { materials, isLoading, addMaterial, addMaterials, updateMaterial, deleteMaterial } = useRawMaterials();
+  const { materials, isLoading, addMaterial, addMaterials, updateMaterial, deleteMaterial, deleteAllMaterials } = useRawMaterials();
   const { t } = useLanguage();
   const orgId = currentUser?.orgId;
 
@@ -52,6 +52,7 @@ export default function RawMaterialsPage() {
         addMaterials={isViewer ? undefined : addMaterials}
         updateMaterial={isViewer ? noopId : updateMaterial}
         deleteMaterial={isViewer ? noopId : deleteMaterial}
+        deleteAllMaterials={isViewer ? undefined : deleteAllMaterials}
         isReadOnly={isViewer}
         t={t.materials}
       />
