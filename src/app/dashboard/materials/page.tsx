@@ -62,9 +62,9 @@ export default function RawMaterialsPage() {
         data={materials}
         providers={providers}
         categories={categories}
-        addMaterial={isViewer ? () => {} : addMaterial}
-        updateMaterial={isViewer ? () => {} : updateMaterial}
-        deleteMaterial={isViewer ? () => {} : deleteMaterial}
+        addMaterial={isViewer ? (_m: any) => {} : addMaterial}
+        updateMaterial={isViewer ? (_id: string, _u: any) => {} : updateMaterial}
+        deleteMaterial={isViewer ? (_id: string) => {} : deleteMaterial}
         isReadOnly={isViewer}
         t={t.materials}
       />
