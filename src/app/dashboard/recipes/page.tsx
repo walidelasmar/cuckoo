@@ -29,12 +29,14 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { RecipeForm } from '@/components/recipes/recipe-form';
 import { useRawMaterials } from '@/hooks/use-raw-materials';
 import { useAuth } from '@/hooks/use-auth';
+import { useLanguage } from '@/contexts/language-context';
 import type { Recipe } from '@/lib/types';
 import type { RecipeFormValues } from '@/hooks/use-recipes';
 import { getList, RECIPE_CATEGORIES_KEY } from '@/lib/lists';
 
 export default function RecipesPage() {
-  const { currentUser } = useAuth();
+  const { currentUser , isViewer} = useAuth();
+  const { t } = useLanguage();
   const orgId = currentUser?.orgId || '';
   const { recipes, isLoading, addRecipe, updateRecipe, deleteRecipe } = useRecipes();
   const { materials, isLoading: isLoadingMaterials } = useRawMaterials();
@@ -198,13 +200,13 @@ export default function RecipesPage() {
             </SheetContent>
         </Sheet>
       <h1 className="font-headline text-3xl font-bold tracking-tight">
-        Recipes
+        {t.recipes.title}
       </h1>
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search recipes..."
+            placeholder={t.recipes.search}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8"
@@ -230,14 +232,14 @@ export default function RecipesPage() {
         </div>
         <Sheet open={isNewSheetOpen} onOpenChange={setIsNewSheetOpen}>
             <SheetTrigger asChild>
-                <Button size="sm" className="gap-1">
+                <Button size="sm" className="gap-1" disabled={isViewer}>
                     <PlusCircle className="h-4 w-4" />
                     New Recipe
                 </Button>
             </SheetTrigger>
             <SheetContent className="sm:max-w-2xl">
                 <SheetHeader>
-                    <SheetTitle>Create New Recipe</SheetTitle>
+                    <SheetTitle>{t.recipes.addRecipe}</SheetTitle>
                 </SheetHeader>
                 <RecipeForm
                     onSave={handleAddNewRecipe}
