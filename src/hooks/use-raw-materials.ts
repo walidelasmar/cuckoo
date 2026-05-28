@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { RawMaterial } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { syncMaterialLists } from '@/lib/lists';
@@ -14,12 +14,18 @@ export function useRawMaterials() {
 
   const [materials, setMaterials] = useState<RawMaterial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const materialsRef = useRef<RawMaterial[]>([]);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    materialsRef.current = materials;
+  }, [materials]);
 
   const loadMaterials = useCallback(async () => {
-    if (!orgId) { setMaterials([]); setIsLoading(false); return; }
+    if (!orgId) return;
     setIsLoading(true);
     const { data } = await supabase.from('raw_materials').select('data').eq('org_id', orgId).eq('id', ORG_ROW_ID(orgId)).maybeSingle();
-    setMaterials((data?.data as RawMaterial[]) || []);
+    setMaterials(data?.data ?? []);
     setIsLoading(false);
   }, [orgId]);
 
@@ -27,25 +33,32 @@ export function useRawMaterials() {
 
   const saveMaterials = useCallback(async (updated: RawMaterial[]) => {
     if (!orgId) return;
-    await supabase.from('raw_materials').upsert({ id: ORG_ROW_ID(orgId), org_id: orgId, data: updated, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+    await supabase.from('raw_materials').upsert({ id: ORG_ROW_ID(orgId), org_id: orgId, data: updated, updated_at: new Date().toISOString() });
     setMaterials(updated);
     await syncMaterialLists(updated, orgId);
   }, [orgId]);
 
-  const addMaterial = useCallback(async (material: RawMaterial) => {
-    const updated = [...materials, material];
+  const addMaterial = useCallback(async (material: Omit<RawMaterial, 'id'>) => {
+    const newItem: RawMaterial = { ...material, id: crypto.randomUUID() };
+    const updated = [...materialsRef.current, newItem];
     await saveMaterials(updated);
-  }, [materials, saveMaterials]);
+  }, [saveMaterials]);
 
-  const updateMaterial = useCallback(async (id: string, updates: Partial<RawMaterial>) => {
-    const updated = materials.map(m => m.id === id ? { ...m, ...updates } : m);
+  const addMaterials = useCallback(async (batch: Omit<RawMaterial, 'id'>[]) => {
+    const newItems: RawMaterial[] = batch.map(m => ({ ...m, id: crypto.randomUUID() }));
+    const updated = [...materialsRef.current, ...newItems];
     await saveMaterials(updated);
-  }, [materials, saveMaterials]);
+  }, [saveMaterials]);
+
+  const updateMaterial = useCallback(async (id: string, updates: Partial<Omit<RawMaterial, 'id'>>) => {
+    const updated = materialsRef.current.map(m => m.id === id ? { ...m, ...updates } : m);
+    await saveMaterials(updated);
+  }, [saveMaterials]);
 
   const deleteMaterial = useCallback(async (id: string) => {
-    const updated = materials.filter(m => m.id !== id);
+    const updated = materialsRef.current.filter(m => m.id !== id);
     await saveMaterials(updated);
-  }, [materials, saveMaterials]);
+  }, [saveMaterials]);
 
-  return { materials, isLoading, addMaterial, updateMaterial, deleteMaterial };
+  return { materials, isLoading, addMaterial, addMaterials, updateMaterial, deleteMaterial };
 }
