@@ -31,6 +31,7 @@ function EditableCell({
     meta,
     type = "text",
     options,
+    className,
 }: {
     value: string | number;
     rowId: string;
@@ -38,6 +39,7 @@ function EditableCell({
     meta: any;
     type?: string;
     options?: { value: string; label: string }[];
+    className?: string;
 }) {
     const isEditing = meta?.editingCell?.rowId === rowId && meta?.editingCell?.columnId === columnId;
     const [tempValue, setTempValue] = useState(String(initialValue));
@@ -95,7 +97,7 @@ function EditableCell({
                 onChange={(e) => setTempValue(e.target.value)}
                 onBlur={handleSave}
                 onKeyDown={handleKeyDown}
-                className="h-8 border-primary"
+                className={`h-8 border-primary${className ? ' text-right' : ''}`}
                 step={type === "number" ? "0.01" : undefined}
             />
         );
@@ -103,7 +105,7 @@ function EditableCell({
 
     return (
         <div
-            className="pl-1 cursor-pointer hover:bg-muted/50 rounded px-2 py-1 min-h-[28px] flex items-center"
+            className={`pl-1 cursor-pointer hover:bg-muted/50 rounded px-2 py-1 min-h-[28px] flex items-center${className ? ' ' + className : ''}`}
             onDoubleClick={handleDoubleClick}
             title="Double-click to edit"
         >
@@ -285,6 +287,7 @@ export const columns: ColumnDef<RawMaterial>[] = [
           columnId="quantity"
           meta={table.options.meta}
           type="number"
+          className="justify-end"
         />
       </div>
     ),
