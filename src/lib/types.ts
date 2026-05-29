@@ -54,7 +54,7 @@ export type Organization = {
   countryCode: string;
   address: string;
   preferredLanguage: 'en' | 'es';
-  currency: 'USD' | 'EUR';
+  currency: string;
   logoUrl?: string;
   createdAt: string;
 };
