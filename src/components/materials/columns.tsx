@@ -305,7 +305,7 @@ export const columns: ColumnDef<RawMaterial>[] = [
       const cost = parseFloat(row.getValue("cost"))
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: (meta as any)?.currency || 'USD',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(cost)
@@ -347,7 +347,8 @@ export const columns: ColumnDef<RawMaterial>[] = [
   {
     id: 'unitCost',
     header: () => <div className="text-right">Unit Cost</div>,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
+      const metaU = table.options.meta as any;
       const quantity = row.original.quantity;
       if (!quantity || quantity <= 0) {
         return <div className="text-right text-muted-foreground">N/A</div>;
@@ -355,7 +356,7 @@ export const columns: ColumnDef<RawMaterial>[] = [
       const costPerUnit = row.original.cost / quantity;
       const formatted = new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: metaU?.currency || 'USD',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(costPerUnit);
