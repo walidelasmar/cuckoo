@@ -434,28 +434,26 @@ export default function SettingsPage() {
                   disabled={!orgCountryCode}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label>{t.settings.currency}</Label>
-                  <Select value={orgCurrency} onValueChange={(v) => setOrgCurrency(v)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
-                      <SelectItem value="GBP">GBP (£)</SelectItem>
-                      <SelectItem value="JPY">JPY (¥)</SelectItem>
-                      <SelectItem value="CAD">CAD (CA$)</SelectItem>
-                      <SelectItem value="AUD">AUD (A$)</SelectItem>
-                      <SelectItem value="CHF">CHF (CHF)</SelectItem>
-                      <SelectItem value="MXN">MXN (MX$)</SelectItem>
-                      <SelectItem value="BRL">BRL (R$)</SelectItem>
-                      <SelectItem value="AED">AED (AED)</SelectItem>
-                      <SelectItem value="SAR">SAR (SAR)</SelectItem>
-                      <SelectItem value="MAD">MAD (MAD)</SelectItem>
-                      <SelectItem value="EGP">EGP (EGP)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="grid gap-2">
+                <Label>{t.settings.currency}</Label>
+                <Select value={orgCurrency} onValueChange={(v) => setOrgCurrency(v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                    <SelectItem value="JPY">JPY (¥)</SelectItem>
+                    <SelectItem value="CAD">CAD (CA$)</SelectItem>
+                    <SelectItem value="AUD">AUD (A$)</SelectItem>
+                    <SelectItem value="CHF">CHF (CHF)</SelectItem>
+                    <SelectItem value="MXN">MXN (MX$)</SelectItem>
+                    <SelectItem value="BRL">BRL (R$)</SelectItem>
+                    <SelectItem value="AED">AED (AED)</SelectItem>
+                    <SelectItem value="SAR">SAR (SAR)</SelectItem>
+                    <SelectItem value="MAD">MAD (MAD)</SelectItem>
+                    <SelectItem value="EGP">EGP (EGP)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Button type="submit" size="sm" disabled={orgLoading} className="w-fit">
                 {orgLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{t.settings.saveOrg}
@@ -472,15 +470,13 @@ export default function SettingsPage() {
           <CardDescription>{t.settings.language_switch_desc}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-2">
-            <Label>{t.settings.language}</Label>
-            <Select value={language} onValueChange={(v) => setLanguage(v as 'en' | 'es')}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">{t.settings.english}</SelectItem>
-                <SelectItem value="es">{t.settings.spanish}</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium">{t.settings.english}</span>
+            <Switch
+              checked={language === 'es'}
+              onCheckedChange={(checked) => setLanguage(checked ? 'es' : 'en')}
+            />
+            <span className="text-sm font-medium">{t.settings.spanish}</span>
           </div>
         </CardContent>
       </Card>
