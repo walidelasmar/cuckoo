@@ -303,9 +303,8 @@ export const columns: ColumnDef<RawMaterial>[] = [
       const meta = table.options.meta as any;
       const isEditing = meta?.editingCell?.rowId === row.original.id && meta?.editingCell?.columnId === "cost";
       const cost = parseFloat(row.getValue("cost"))
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: (meta as any)?.currency || 'USD',
+      const currSym = (meta as any)?.currency || '$';
+      const formatted = currSym + new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(cost)
@@ -354,12 +353,11 @@ export const columns: ColumnDef<RawMaterial>[] = [
         return <div className="text-right text-muted-foreground">N/A</div>;
       }
       const costPerUnit = row.original.cost / quantity;
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: metaU?.currency || 'USD',
+      const currSymU = metaU?.currency || '$';
+      const formatted = currSymU + new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(costPerUnit);
+      }).format(costPerUnit)
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
