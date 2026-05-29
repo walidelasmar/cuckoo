@@ -437,7 +437,7 @@ export default function SettingsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>{t.settings.currency}</Label>
-                  <Select value={orgCurrency} onValueChange={(v) => setOrgCurrency(v as 'USD' | 'EUR')}>
+                  <Select value={orgCurrency} onValueChange={(v) => setOrgCurrency(v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="USD">USD ($)</SelectItem>
@@ -456,16 +456,6 @@ export default function SettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label>{t.settings.language}</Label>
-                  <Select value={orgLang} onValueChange={(v) => setOrgLang(v as 'en' | 'es')}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">{t.settings.english}</SelectItem>
-                      <SelectItem value="es">{t.settings.spanish}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
               <Button type="submit" size="sm" disabled={orgLoading} className="w-fit">
                 {orgLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{t.settings.saveOrg}
@@ -474,6 +464,26 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Language Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Globe className="h-5 w-5" />{t.settings.language}</CardTitle>
+          <CardDescription>{t.settings.languageDesc}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-2">
+            <Label>{t.settings.language}</Label>
+            <Select value={language} onValueChange={(v) => setLanguage(v as 'en' | 'es')}>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">{t.settings.english}</SelectItem>
+                <SelectItem value="es">{t.settings.spanish}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Org Members Section (Account Admin only) */}
       {isOrgAdmin && !isSuperAdmin && (
