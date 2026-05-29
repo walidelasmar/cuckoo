@@ -98,7 +98,7 @@ export default function SettingsPage() {
   const [orgCountry, setOrgCountry] = useState(currentOrg?.country || '');
   const [orgCountryCode, setOrgCountryCode] = useState(currentOrg?.countryCode || '');
   const [orgAddress, setOrgAddress] = useState(currentOrg?.address || '');
-  const [orgCurrency, setOrgCurrency] = useState<'USD' | 'EUR'>(currentOrg?.currency || 'USD');
+  const [orgCurrency, setOrgCurrency] = useState<string>(currentOrg?.currency || 'USD');
   const [orgLang, setOrgLang] = useState<'en' | 'es'>(currentOrg?.preferredLanguage || 'en');
   const [orgLoading, setOrgLoading] = useState(false);
 
@@ -370,26 +370,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Language Switch Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Globe className="h-5 w-5" />{t.settings.language_switch}</CardTitle>
-          <CardDescription>{t.settings.language_switch_desc}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <span className={language === 'en' ? 'font-semibold' : 'text-muted-foreground'}>{t.settings.english}</span>
-            <Switch
-              checked={language === 'es'}
-              onCheckedChange={(checked) => setLanguage(checked ? 'es' : 'en')}
-              aria-label="Toggle language"
-            />
-            <span className={language === 'es' ? 'font-semibold' : 'text-muted-foreground'}>{t.settings.spanish}</span>
-          </div>
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><UserCircle className="h-5 w-5" />{t.settings.profile}</CardTitle>
@@ -462,6 +442,17 @@ export default function SettingsPage() {
                     <SelectContent>
                       <SelectItem value="USD">USD ($)</SelectItem>
                       <SelectItem value="EUR">EUR (€)</SelectItem>
+                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                      <SelectItem value="JPY">JPY (¥)</SelectItem>
+                      <SelectItem value="CAD">CAD (CA$)</SelectItem>
+                      <SelectItem value="AUD">AUD (A$)</SelectItem>
+                      <SelectItem value="CHF">CHF (CHF)</SelectItem>
+                      <SelectItem value="MXN">MXN (MX$)</SelectItem>
+                      <SelectItem value="BRL">BRL (R$)</SelectItem>
+                      <SelectItem value="AED">AED (AED)</SelectItem>
+                      <SelectItem value="SAR">SAR (SAR)</SelectItem>
+                      <SelectItem value="MAD">MAD (MAD)</SelectItem>
+                      <SelectItem value="EGP">EGP (EGP)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
