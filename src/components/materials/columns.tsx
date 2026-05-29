@@ -276,20 +276,29 @@ export const columns: ColumnDef<RawMaterial>[] = [
     },
    {
     accessorKey: "quantity",
-    header: "Quantity",
+    header: () => <div className="text-right">Quantity</div>,
     cell: ({ row, table }) => (
-      <EditableCell
-        value={row.original.quantity}
-        rowId={row.original.id}
-        columnId="quantity"
-        meta={table.options.meta}
-        type="number"
-      />
+      <div className="text-right">
+        <EditableCell
+          value={row.original.quantity}
+          rowId={row.original.id}
+          columnId="quantity"
+          meta={table.options.meta}
+          type="number"
+        />
+      </div>
+    ),
+  },
+  {
+    accessorKey: "unit",
+    header: () => <div className="text-left">Unit</div>,
+    cell: ({ row }) => (
+      <div className="text-left text-sm">{row.original.unit}</div>
     ),
   },
   {
     accessorKey: "cost",
-    header: () => <div className="text-right">Cost</div>,
+    header: ({ table }) => { const currency = (table.options.meta as any)?.currency || '$'; return <div className="text-right">Cost ({currency})</div>; },
     cell: ({ row, table }) => {
       const meta = table.options.meta as any;
       const isEditing = meta?.editingCell?.rowId === row.original.id && meta?.editingCell?.columnId === "cost";
