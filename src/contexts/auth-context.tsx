@@ -115,6 +115,8 @@ export type AuthContextType = {
   isOrgAdmin: boolean;
   isAdmin: boolean;
   isViewer: boolean;
+  currency: string;
+  currentOrg: any;
 };
 
 export const AuthContext = React.createContext<AuthContextType | null>(null);
@@ -369,7 +371,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isViewer = currentUser?.role === 'org_viewer';
 
   return (
-    <AuthContext.Provider value={{ currentUser, currentOrg, isLoading, login, logout, registerOrg, acceptInvite, getInvite, createInvite, updateProfile, updateOrgSettings, changePassword, setUserStatus, getAuditLog, getAllOrgs, getAllUsers, updateUserByAdmin, isSuperAdmin, isOrgAdmin, isAdmin, isViewer }}>
+    <AuthContext.Provider value={{ currentUser, currentOrg, isLoading, login, logout, registerOrg, acceptInvite, getInvite, createInvite, updateProfile, updateOrgSettings, changePassword, setUserStatus, getAuditLog, getAllOrgs, getAllUsers, updateUserByAdmin, isSuperAdmin, isOrgAdmin, isAdmin, isViewer, currency: currentOrg?.currency || 'USD', currentOrg }}>
       {children}
     </AuthContext.Provider>
   );
