@@ -32,6 +32,7 @@ interface MaterialsClientProps {
   updateMaterial: (id: string, data: Partial<Omit<RawMaterial, 'id'>>) => void;
   deleteMaterial: (id: string) => void;
   deleteAllMaterials?: () => void;
+  currency?: string;
 }
 
 const VALID_UNITS: Unit[] = ['g', 'kg', 'oz', 'lb', 'ml', 'l', 'tsp', 'tbsp', 'cup', 'pc', 'portion'];
@@ -101,6 +102,7 @@ export default function MaterialsClient({
   updateMaterial,
   deleteMaterial,
   deleteAllMaterials,
+  currency = '$',
   isReadOnly = false,
   t,
 }: MaterialsClientProps) {
@@ -242,6 +244,7 @@ export default function MaterialsClient({
           categories,
           updateMaterial,
           deleteMaterial,
+          currency,
         }}
       />
     </>
