@@ -469,7 +469,7 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Globe className="h-5 w-5" />{t.settings.language}</CardTitle>
-          <CardDescription>{t.settings.languageDesc}</CardDescription>
+          <CardDescription>{t.settings.language_switch_desc}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-2">
